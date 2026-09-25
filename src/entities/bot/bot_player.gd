@@ -70,8 +70,8 @@ func _ready() -> void:
 	if peer_id == 0:
 		peer_id = get_instance_id()
 	player_name = "🤖 %s" % bot_name
-	collision_layer = 2 # Player layer
-	collision_mask = 1 # Collide with World/Ground (1)
+	collision_layer = 2 # Player/Guard layer
+	collision_mask = 3 # Collide with World/Ground (1) and other Players/Guards (2)
 	name_label.text = "%s\n[%s]" % [player_name, NetworkManager.get_role_name(role)]
 	_apply_role_appearance()
 	_spawn_at_role_position()

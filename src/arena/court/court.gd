@@ -94,10 +94,16 @@ func _physics_process(_delta: float) -> void:
 		if child is CharacterBody3D and _is_runner(child):
 			var z_pos: float = child.global_position.z
 			var x_pos: float = child.global_position.x
-			# If runner is between entrance and back line, they must stay inside court boundary (|X| <= 5.5m)
+			# Inside the court boxes (Z from -0.2 to 15.2):
+			# Runner can play all the way to the chalk lines (|X| <= 5.4m).
+			# Touching the edge simply stops them at the boundary — zero progress loss, zero reset to start!
 			if z_pos >= -0.2 and z_pos <= 15.2:
-				if abs(x_pos) > 5.55:
-					_handle_out_of_bounds(child)
+				if abs(x_pos) > 5.4:
+					child.global_position.x = clamp(child.global_position.x, -5.35, 5.35)
+					child.velocity.x = 0.0
+			elif abs(x_pos) > 7.0:
+				child.global_position.x = clamp(child.global_position.x, -6.8, 6.8)
+				child.velocity.x = 0.0
 
 func _on_back_zone_entered(body: Node3D) -> void:
 	if not _is_runner(body):
@@ -138,26 +144,9 @@ func _on_home_zone_entered(body: Node3D) -> void:
 func _on_out_of_bounds_entered(body: Node3D) -> void:
 	if not _is_runner(body):
 		return
-	_handle_out_of_bounds(body)
-
-func _handle_out_of_bounds(body: Node3D) -> void:
-	var pid := _get_runner_id(body)
-	var p_name := _get_runner_name(body)
-	
-	# Reset progress for this attempt
-	runner_progress[pid] = {
-		"outbound_tier": 0,
-		"inbound_tier": 0,
-		"has_reached_back": false
-	}
-	
-	# Penalize runner by resetting position to staging area
-	if body.has_method("on_tagged"):
-		body.on_tagged()
-	
-	out_of_bounds_triggered.emit(pid)
-	NetworkManager.trigger_foul(pid, "%s Stepped Out of Bounds!" % p_name)
-	GameManager.show_combat_banner("❌ OUT OF BOUNDS FOUL! Reset to start.", Color(1.0, 0.25, 0.25))
+	# Softly reposition to the sideline of the current box — progress is preserved!
+	body.global_position.x = clamp(body.global_position.x, -5.35, 5.35)
+	body.velocity.x = 0.0
 
 func _on_player_tagged_reset(_runner_name: String, _tagger: String) -> void:
 	# Reset progress for the tagged runner

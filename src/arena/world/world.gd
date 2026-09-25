@@ -35,13 +35,9 @@ func _on_player_tagged(runner_name: String, _tagger_name: String) -> void:
 				if child.has_method("on_tagged"):
 					child.on_tagged()
 
-func _on_player_foul(runner_name: String, _reason: String) -> void:
-	for child in players_container.get_children():
-		if child is CharacterBody3D and "role" in child and child.role == NetworkManager.Role.RUNNER:
-			var c_name: String = child.player_name if "player_name" in child else child.bot_name if "bot_name" in child else ""
-			if c_name == runner_name or runner_name.contains(c_name) or c_name.contains(runner_name):
-				if child.has_method("on_tagged"):
-					child.on_tagged()
+func _on_player_foul(_runner_name: String, _reason: String) -> void:
+	# Fouls award points to defense, but do NOT teleport runner back to start
+	pass
 
 func _get_initial_role_position(r: NetworkManager.Role) -> Vector3:
 	match r:
