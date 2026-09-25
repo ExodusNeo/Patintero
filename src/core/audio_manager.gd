@@ -13,12 +13,14 @@ var whoosh_stream: AudioStreamWAV
 var charged_whoosh_stream: AudioStreamWAV
 var panting_stream: AudioStreamWAV
 var heartbeat_stream: AudioStreamWAV
+var ambient_stream: AudioStreamWAV
 
 var player_pool: Array[AudioStreamPlayer] = []
 const POOL_SIZE := 8
 
 var panting_player: AudioStreamPlayer
 var heartbeat_player: AudioStreamPlayer
+var ambient_player: AudioStreamPlayer
 
 var master_volume: float = 0.8
 var is_muted: bool = false
@@ -78,6 +80,13 @@ func _create_special_players() -> void:
 	heartbeat_player.stream = heartbeat_stream
 	add_child(heartbeat_player)
 
+	ambient_player = AudioStreamPlayer.new()
+	ambient_player.bus = "Master"
+	ambient_player.stream = ambient_stream
+	ambient_player.volume_db = -18.0
+	add_child(ambient_player)
+	ambient_player.play()
+
 func _get_available_player() -> AudioStreamPlayer:
 	for p in player_pool:
 		if not p.playing:
@@ -96,6 +105,7 @@ func _generate_audio_assets() -> void:
 	charged_whoosh_stream = _gen_charged_whoosh()
 	panting_stream = _gen_panting()
 	heartbeat_stream = _gen_heartbeat()
+	ambient_stream = _gen_ambient_loop()
 
 func _gen_whistle() -> AudioStreamWAV:
 	var sample_rate := 22050
@@ -453,3 +463,40 @@ func play_foul() -> void:
 	p.volume_db = -3.0
 	p.play()
 	get_tree().create_timer(0.15).timeout.connect(func(): play_whistle(true))
+
+func _gen_ambient_loop() -> AudioStreamWAV:
+	# 4.0 second loopable soft street air / neighborhood breeze ambiance
+	var sample_rate := 22050
+	var duration := 4.0
+	var num_samples := int(sample_rate * duration)
+	var data := PackedByteArray()
+	data.resize(num_samples * 2)
+	
+	var last_val := 0.0
+	for i in range(num_samples):
+		var t := float(i) / float(sample_rate)
+		# Filtered pink noise (breeze) + subtle low-frequency air
+		var white := randf_range(-1.0, 1.0)
+		last_val = lerpf(last_val, white, 0.08)
+		var air_swell: float = (sin(t * 1.5) * 0.3 + sin(t * 0.7) * 0.2)
+		var val: float = (last_val * (0.6 + air_swell)) * 0.12
+		
+		# Smooth loop fade at edges (first and last 0.25s)
+		if t < 0.25:
+			val *= (t / 0.25)
+		elif t > (duration - 0.25):
+			val *= ((duration - t) / 0.25)
+		
+		var sample := int(clamp(val * 32767.0, -32768.0, 32767.0))
+		data.encode_s16(i * 2, sample)
+	
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = sample_rate
+	stream.stereo = false
+	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	stream.loop_begin = 0
+	stream.loop_end = num_samples
+	stream.data = data
+	return stream
+

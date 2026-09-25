@@ -1,0 +1,222 @@
+[gd_scene load_steps=22 format=3]
+
+[sub_resource type="StandardMaterial3D" id="Mat_store_wall"]
+albedo_color = Color(0.28, 0.62, 0.58, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="BoxMesh_store_body"]
+material = SubResource("Mat_store_wall")
+size = Vector3(4.5, 3.2, 3.5)
+
+[sub_resource type="StandardMaterial3D" id="Mat_counter_wood"]
+albedo_color = Color(0.55, 0.38, 0.22, 1)
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="BoxMesh_counter"]
+material = SubResource("Mat_counter_wood")
+size = Vector3(2.6, 0.9, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="Mat_yero_tin"]
+albedo_color = Color(0.68, 0.72, 0.75, 1)
+metallic = 0.65
+roughness = 0.45
+
+[sub_resource type="BoxMesh" id="BoxMesh_yero_roof"]
+material = SubResource("Mat_yero_tin")
+size = Vector3(5.2, 0.08, 4.2)
+
+[sub_resource type="StandardMaterial3D" id="Mat_rehas_bars"]
+albedo_color = Color(0.2, 0.22, 0.25, 1)
+metallic = 0.8
+roughness = 0.3
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_rebar"]
+material = SubResource("Mat_rehas_bars")
+top_radius = 0.015
+bottom_radius = 0.015
+height = 1.1
+
+[sub_resource type="StandardMaterial3D" id="Mat_crate_red"]
+albedo_color = Color(0.85, 0.15, 0.12, 1)
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_crate"]
+material = SubResource("Mat_crate_red")
+size = Vector3(0.55, 0.32, 0.42)
+
+[sub_resource type="StandardMaterial3D" id="Mat_bottle_amber"]
+albedo_color = Color(0.7, 0.45, 0.1, 0.85)
+roughness = 0.2
+transparency = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_bottle"]
+material = SubResource("Mat_bottle_amber")
+top_radius = 0.035
+bottom_radius = 0.045
+height = 0.28
+
+[sub_resource type="StandardMaterial3D" id="Mat_chip_yellow"]
+albedo_color = Color(0.95, 0.82, 0.1, 1)
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_chip_red"]
+albedo_color = Color(0.9, 0.25, 0.2, 1)
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_chip_green"]
+albedo_color = Color(0.2, 0.75, 0.3, 1)
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_chip_bag"]
+size = Vector3(0.14, 0.22, 0.04)
+
+[sub_resource type="StandardMaterial3D" id="Mat_bench_wood"]
+albedo_color = Color(0.48, 0.32, 0.18, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="BoxMesh_bench_seat"]
+material = SubResource("Mat_bench_wood")
+size = Vector3(1.6, 0.08, 0.45)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bench_leg"]
+material = SubResource("Mat_bench_wood")
+size = Vector3(0.08, 0.42, 0.38)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_store_col"]
+size = Vector3(4.8, 3.5, 3.8)
+
+[node name="SariSariStore" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+shape = SubResource("BoxShape3D_store_col")
+
+[node name="MainBuilding" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+mesh = SubResource("BoxMesh_store_body")
+
+[node name="YeroRoof" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 3.3, 0.4)
+mesh = SubResource("BoxMesh_yero_roof")
+
+[node name="StoreCounter" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 1.7)
+mesh = SubResource("BoxMesh_counter")
+
+[node name="SecurityGrill" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 1.72)
+
+[node name="Bar1" type="MeshInstance3D" parent="SecurityGrill"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 0, 0)
+mesh = SubResource("CylinderMesh_rebar")
+
+[node name="Bar2" type="MeshInstance3D" parent="SecurityGrill"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0, 0)
+mesh = SubResource("CylinderMesh_rebar")
+
+[node name="Bar3" type="MeshInstance3D" parent="SecurityGrill"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 0, 0)
+mesh = SubResource("CylinderMesh_rebar")
+
+[node name="Bar4" type="MeshInstance3D" parent="SecurityGrill"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("CylinderMesh_rebar")
+
+[node name="Bar5" type="MeshInstance3D" parent="SecurityGrill"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0, 0)
+mesh = SubResource("CylinderMesh_rebar")
+
+[node name="Bar6" type="MeshInstance3D" parent="SecurityGrill"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0, 0)
+mesh = SubResource("CylinderMesh_rebar")
+
+[node name="Bar7" type="MeshInstance3D" parent="SecurityGrill"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 0, 0)
+mesh = SubResource("CylinderMesh_rebar")
+
+[node name="HangingChichirya" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.05, 1.82)
+
+[node name="Bag1" type="MeshInstance3D" parent="HangingChichirya"]
+transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, -0.75, 0, 0)
+material_override = SubResource("Mat_chip_yellow")
+mesh = SubResource("BoxMesh_chip_bag")
+
+[node name="Bag2" type="MeshInstance3D" parent="HangingChichirya"]
+transform = Transform3D(0.996195, 0, -0.0871557, 0, 1, 0, 0.0871557, 0, 0.996195, -0.75, -0.26, 0)
+material_override = SubResource("Mat_chip_red")
+mesh = SubResource("BoxMesh_chip_bag")
+
+[node name="Bag3" type="MeshInstance3D" parent="HangingChichirya"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, -0.52, 0)
+material_override = SubResource("Mat_chip_green")
+mesh = SubResource("BoxMesh_chip_bag")
+
+[node name="Bag4" type="MeshInstance3D" parent="HangingChichirya"]
+transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, 0.965926, 0.75, 0, 0)
+material_override = SubResource("Mat_chip_red")
+mesh = SubResource("BoxMesh_chip_bag")
+
+[node name="Bag5" type="MeshInstance3D" parent="HangingChichirya"]
+transform = Transform3D(0.984808, 0, 0.173648, 0, 1, 0, -0.173648, 0, 0.984808, 0.75, -0.26, 0)
+material_override = SubResource("Mat_chip_yellow")
+mesh = SubResource("BoxMesh_chip_bag")
+
+[node name="Bag6" type="MeshInstance3D" parent="HangingChichirya"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, -0.52, 0)
+material_override = SubResource("Mat_chip_green")
+mesh = SubResource("BoxMesh_chip_bag")
+
+[node name="DrinkCrates" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 0, 1.8)
+
+[node name="CrateBottom" type="MeshInstance3D" parent="DrinkCrates"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16, 0)
+mesh = SubResource("BoxMesh_crate")
+
+[node name="CrateTop" type="MeshInstance3D" parent="DrinkCrates"]
+transform = Transform3D(0.996195, 0, 0.0871557, 0, 1, 0, -0.0871557, 0, 0.996195, 0.02, 0.48, 0)
+mesh = SubResource("BoxMesh_crate")
+
+[node name="Bottle1" type="MeshInstance3D" parent="DrinkCrates/CrateTop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15, 0.25, -0.1)
+mesh = SubResource("CylinderMesh_bottle")
+
+[node name="Bottle2" type="MeshInstance3D" parent="DrinkCrates/CrateTop"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, 0.25, 0.1)
+mesh = SubResource("CylinderMesh_bottle")
+
+[node name="StoreSign" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.65, 1.76)
+
+[node name="SignTitle" type="Label3D" parent="StoreSign"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+text = "ALING NENA'S STORE"
+font_size = 38
+modulate = Color(1, 0.92, 0.3, 1)
+outline_size = 8
+outline_modulate = Color(0.1, 0.1, 0.1, 1)
+
+[node name="SignSub" type="Label3D" parent="StoreSign"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.12, 0)
+text = "• COLD DRINKS • ICE CANDY • LOAD DITO •"
+font_size = 20
+modulate = Color(1, 1, 1, 0.9)
+outline_size = 6
+
+[node name="TambayanBench" type="Node3D" parent="."]
+transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, 0.965926, 1.8, 0, 2.1)
+
+[node name="Seat" type="MeshInstance3D" parent="TambayanBench"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+mesh = SubResource("BoxMesh_bench_seat")
+
+[node name="LegLeft" type="MeshInstance3D" parent="TambayanBench"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.65, 0.21, 0)
+mesh = SubResource("BoxMesh_bench_leg")
+
+[node name="LegRight" type="MeshInstance3D" parent="TambayanBench"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.65, 0.21, 0)
+mesh = SubResource("BoxMesh_bench_leg")

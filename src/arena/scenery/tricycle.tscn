@@ -1,0 +1,126 @@
+[gd_scene load_steps=14 format=3]
+
+[sub_resource type="StandardMaterial3D" id="Mat_motor_body"]
+albedo_color = Color(0.12, 0.45, 0.85, 1)
+metallic = 0.6
+roughness = 0.35
+
+[sub_resource type="BoxMesh" id="BoxMesh_motor_frame"]
+material = SubResource("Mat_motor_body")
+size = Vector3(0.45, 0.6, 1.8)
+
+[sub_resource type="StandardMaterial3D" id="Mat_rubber_tire"]
+albedo_color = Color(0.12, 0.12, 0.12, 1)
+roughness = 0.9
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_tire"]
+material = SubResource("Mat_rubber_tire")
+top_radius = 0.28
+bottom_radius = 0.28
+height = 0.15
+
+[sub_resource type="StandardMaterial3D" id="Mat_sidecar_stainless"]
+albedo_color = Color(0.82, 0.85, 0.88, 1)
+metallic = 0.75
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_sidecar_tub"]
+material = SubResource("Mat_sidecar_stainless")
+size = Vector3(0.95, 0.85, 1.6)
+
+[sub_resource type="StandardMaterial3D" id="Mat_canvas_roof"]
+albedo_color = Color(0.2, 0.6, 0.4, 1)
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="BoxMesh_sidecar_roof"]
+material = SubResource("Mat_canvas_roof")
+size = Vector3(1.1, 0.06, 1.7)
+
+[sub_resource type="StandardMaterial3D" id="Mat_pipe_frame"]
+albedo_color = Color(0.3, 0.32, 0.35, 1)
+metallic = 0.8
+roughness = 0.3
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_roof_support"]
+material = SubResource("Mat_pipe_frame")
+top_radius = 0.02
+bottom_radius = 0.02
+height = 0.75
+
+[sub_resource type="StandardMaterial3D" id="Mat_headlight_yellow"]
+albedo_color = Color(1, 0.9, 0.3, 1)
+emission_enabled = true
+emission = Color(1, 0.85, 0.2, 1)
+emission_energy_multiplier = 1.2
+
+[sub_resource type="SphereMesh" id="SphereMesh_headlight"]
+material = SubResource("Mat_headlight_yellow")
+radius = 0.12
+height = 0.24
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tricycle_col"]
+size = Vector3(1.9, 1.7, 2.2)
+
+[node name="Tricycle" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 0.85, 0)
+shape = SubResource("BoxShape3D_tricycle_col")
+
+[node name="Motorcycle" type="Node3D" parent="."]
+
+[node name="Frame" type="MeshInstance3D" parent="Motorcycle"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0)
+mesh = SubResource("BoxMesh_motor_frame")
+
+[node name="WheelFront" type="MeshInstance3D" parent="Motorcycle"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0.28, -0.7)
+mesh = SubResource("CylinderMesh_tire")
+
+[node name="WheelBack" type="MeshInstance3D" parent="Motorcycle"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0.28, 0.65)
+mesh = SubResource("CylinderMesh_tire")
+
+[node name="Headlight" type="MeshInstance3D" parent="Motorcycle"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, -0.92)
+mesh = SubResource("SphereMesh_headlight")
+
+[node name="Sidecar" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.95, 0, 0)
+
+[node name="CabinTub" type="MeshInstance3D" parent="Sidecar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+mesh = SubResource("BoxMesh_sidecar_tub")
+
+[node name="Roof" type="MeshInstance3D" parent="Sidecar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 0)
+mesh = SubResource("BoxMesh_sidecar_roof")
+
+[node name="SupportFrontLeft" type="MeshInstance3D" parent="Sidecar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 1.1, -0.7)
+mesh = SubResource("CylinderMesh_roof_support")
+
+[node name="SupportFrontRight" type="MeshInstance3D" parent="Sidecar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 1.1, -0.7)
+mesh = SubResource("CylinderMesh_roof_support")
+
+[node name="SupportBackLeft" type="MeshInstance3D" parent="Sidecar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 1.1, 0.7)
+mesh = SubResource("CylinderMesh_roof_support")
+
+[node name="SupportBackRight" type="MeshInstance3D" parent="Sidecar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 1.1, 0.7)
+mesh = SubResource("CylinderMesh_roof_support")
+
+[node name="SidecarWheel" type="MeshInstance3D" parent="Sidecar"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0.55, 0.28, 0.05)
+mesh = SubResource("CylinderMesh_tire")
+
+[node name="RoutePlate" type="Label3D" parent="Sidecar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, -0.81)
+text = "BAYAN • PUROK 4"
+font_size = 18
+modulate = Color(1, 0.85, 0.1, 1)
+outline_size = 4

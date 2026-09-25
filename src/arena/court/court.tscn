@@ -1,6 +1,11 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://src/arena/court/court.gd" id="1_script"]
+[ext_resource type="Shader" path="res://src/shaders/chalk_line.gdshader" id="2_chalk_shader"]
+[ext_resource type="PackedScene" path="res://src/arena/scenery/sari_sari_store.tscn" id="3_store"]
+[ext_resource type="PackedScene" path="res://src/arena/scenery/utility_poles.tscn" id="4_poles"]
+[ext_resource type="PackedScene" path="res://src/arena/scenery/tricycle.tscn" id="5_tricycle"]
+[ext_resource type="PackedScene" path="res://src/arena/scenery/neighborhood_props.tscn" id="6_neighborhood"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(40, 1, 46)
@@ -13,30 +18,32 @@ roughness = 0.95
 material = SubResource("Mat_asphalt")
 size = Vector3(40, 1, 46)
 
-[sub_resource type="StandardMaterial3D" id="Mat_chalk_white"]
-albedo_color = Color(0.96, 0.96, 0.96, 1)
-roughness = 0.8
-emission_enabled = true
-emission = Color(0.9, 0.9, 0.9, 1)
-emission_energy_multiplier = 0.25
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_chalk_white"]
+render_priority = 0
+shader = ExtResource("2_chalk_shader")
+shader_parameter/chalk_color = Color(0.96, 0.96, 0.95, 1)
+shader_parameter/roughness = 0.92
+shader_parameter/dust_intensity = 1.0
+shader_parameter/edge_roughness = 0.45
 
-[sub_resource type="StandardMaterial3D" id="Mat_chalk_yellow"]
-albedo_color = Color(1, 0.85, 0.15, 1)
-roughness = 0.75
-emission_enabled = true
-emission = Color(1, 0.85, 0.15, 1)
-emission_energy_multiplier = 0.35
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_chalk_yellow"]
+render_priority = 0
+shader = ExtResource("2_chalk_shader")
+shader_parameter/chalk_color = Color(1, 0.85, 0.15, 1)
+shader_parameter/roughness = 0.92
+shader_parameter/dust_intensity = 1.2
+shader_parameter/edge_roughness = 0.45
 
 [sub_resource type="BoxMesh" id="BoxMesh_horiz_line"]
-material = SubResource("Mat_chalk_white")
+material = SubResource("ShaderMaterial_chalk_white")
 size = Vector3(11.4, 0.03, 0.22)
 
 [sub_resource type="BoxMesh" id="BoxMesh_vert_line"]
-material = SubResource("Mat_chalk_white")
+material = SubResource("ShaderMaterial_chalk_white")
 size = Vector3(0.22, 0.03, 15.2)
 
 [sub_resource type="BoxMesh" id="BoxMesh_center_spine"]
-material = SubResource("Mat_chalk_yellow")
+material = SubResource("ShaderMaterial_chalk_yellow")
 size = Vector3(0.26, 0.04, 15.2)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_back"]
@@ -302,3 +309,16 @@ collision_mask = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="OutOfBoundsRight"]
 shape = SubResource("BoxShape3D_oob")
+
+[node name="Scenery" type="Node3D" parent="."]
+
+[node name="SariSariStore" parent="Scenery" instance=ExtResource("3_store")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -10.5, 0, 4.0)
+
+[node name="UtilityPoles" parent="Scenery" instance=ExtResource("4_poles")]
+
+[node name="Tricycle" parent="Scenery" instance=ExtResource("5_tricycle")]
+transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, 8.8, 0, -1.8)
+
+[node name="NeighborhoodProps" parent="Scenery" instance=ExtResource("6_neighborhood")]
+

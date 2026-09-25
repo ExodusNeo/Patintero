@@ -1,0 +1,172 @@
+[gd_scene load_steps=14 format=3]
+
+[sub_resource type="StandardMaterial3D" id="Mat_pole_concrete"]
+albedo_color = Color(0.42, 0.44, 0.46, 1)
+roughness = 0.85
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_concrete_pole"]
+material = SubResource("Mat_pole_concrete")
+top_radius = 0.14
+bottom_radius = 0.18
+height = 8.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_crossbar_metal"]
+albedo_color = Color(0.25, 0.28, 0.3, 1)
+metallic = 0.7
+roughness = 0.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_crossbar"]
+material = SubResource("Mat_crossbar_metal")
+size = Vector3(2.2, 0.12, 0.12)
+
+[sub_resource type="StandardMaterial3D" id="Mat_transformer"]
+albedo_color = Color(0.35, 0.38, 0.4, 1)
+metallic = 0.5
+roughness = 0.5
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_transformer"]
+material = SubResource("Mat_transformer")
+top_radius = 0.22
+bottom_radius = 0.22
+height = 0.85
+
+[sub_resource type="StandardMaterial3D" id="Mat_wire_black"]
+albedo_color = Color(0.08, 0.08, 0.08, 1)
+roughness = 0.7
+
+[sub_resource type="BoxMesh" id="BoxMesh_wire_span"]
+material = SubResource("Mat_wire_black")
+size = Vector3(22.0, 0.03, 0.03)
+
+[sub_resource type="StandardMaterial3D" id="Mat_banderitas_red"]
+albedo_color = Color(0.9, 0.15, 0.15, 1)
+roughness = 0.5
+cull_mode = 0
+
+[sub_resource type="StandardMaterial3D" id="Mat_banderitas_yellow"]
+albedo_color = Color(0.95, 0.85, 0.1, 1)
+roughness = 0.5
+cull_mode = 0
+
+[sub_resource type="StandardMaterial3D" id="Mat_banderitas_blue"]
+albedo_color = Color(0.15, 0.4, 0.9, 1)
+roughness = 0.5
+cull_mode = 0
+
+[sub_resource type="StandardMaterial3D" id="Mat_banderitas_green"]
+albedo_color = Color(0.2, 0.75, 0.25, 1)
+roughness = 0.5
+cull_mode = 0
+
+[sub_resource type="PrismMesh" id="PrismMesh_flag"]
+size = Vector3(0.22, 0.3, 0.01)
+
+[node name="UtilityPoles" type="Node3D"]
+
+[node name="PoleLeft1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.5, 4.25, 0)
+
+[node name="Pillar" type="MeshInstance3D" parent="PoleLeft1"]
+mesh = SubResource("CylinderMesh_concrete_pole")
+
+[node name="Crossbar" type="MeshInstance3D" parent="PoleLeft1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.8, 0)
+mesh = SubResource("BoxMesh_crossbar")
+
+[node name="Transformer" type="MeshInstance3D" parent="PoleLeft1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 2.8, 0)
+mesh = SubResource("CylinderMesh_transformer")
+
+[node name="PoleRight1" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.5, 4.25, 0)
+
+[node name="Pillar" type="MeshInstance3D" parent="PoleRight1"]
+mesh = SubResource("CylinderMesh_concrete_pole")
+
+[node name="Crossbar" type="MeshInstance3D" parent="PoleRight1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.8, 0)
+mesh = SubResource("BoxMesh_crossbar")
+
+[node name="PoleLeft2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.5, 4.25, 15)
+
+[node name="Pillar" type="MeshInstance3D" parent="PoleLeft2"]
+mesh = SubResource("CylinderMesh_concrete_pole")
+
+[node name="Crossbar" type="MeshInstance3D" parent="PoleLeft2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.8, 0)
+mesh = SubResource("BoxMesh_crossbar")
+
+[node name="PoleRight2" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.5, 4.25, 15)
+
+[node name="Pillar" type="MeshInstance3D" parent="PoleRight2"]
+mesh = SubResource("CylinderMesh_concrete_pole")
+
+[node name="Crossbar" type="MeshInstance3D" parent="PoleRight2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.8, 0)
+mesh = SubResource("BoxMesh_crossbar")
+
+[node name="OverheadWires" type="Node3D" parent="."]
+
+[node name="Wire1" type="MeshInstance3D" parent="OverheadWires"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.0, 0)
+mesh = SubResource("BoxMesh_wire_span")
+
+[node name="Wire2" type="MeshInstance3D" parent="OverheadWires"]
+transform = Transform3D(1, 0, 0, 0, 0.999657, 0.0261769, 0, -0.0261769, 0.999657, 0, 7.8, 0.2)
+mesh = SubResource("BoxMesh_wire_span")
+
+[node name="Wire3" type="MeshInstance3D" parent="OverheadWires"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.0, 15)
+mesh = SubResource("BoxMesh_wire_span")
+
+[node name="Wire4" type="MeshInstance3D" parent="OverheadWires"]
+transform = Transform3D(1, 0, 0, 0, 0.999657, -0.0261769, 0, 0.0261769, 0.999657, 0, 7.8, 14.8)
+mesh = SubResource("BoxMesh_wire_span")
+
+[node name="BanderitasFestiveFlags" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.2, 7.5)
+
+[node name="StringLine" type="MeshInstance3D" parent="BanderitasFestiveFlags"]
+mesh = SubResource("BoxMesh_wire_span")
+
+[node name="Flag1" type="MeshInstance3D" parent="BanderitasFestiveFlags"]
+transform = Transform3D(1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, -5.0, -0.15, 0)
+material_override = SubResource("Mat_banderitas_red")
+mesh = SubResource("PrismMesh_flag")
+
+[node name="Flag2" type="MeshInstance3D" parent="BanderitasFestiveFlags"]
+transform = Transform3D(1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, -3.5, -0.15, 0)
+material_override = SubResource("Mat_banderitas_yellow")
+mesh = SubResource("PrismMesh_flag")
+
+[node name="Flag3" type="MeshInstance3D" parent="BanderitasFestiveFlags"]
+transform = Transform3D(1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, -2.0, -0.15, 0)
+material_override = SubResource("Mat_banderitas_blue")
+mesh = SubResource("PrismMesh_flag")
+
+[node name="Flag4" type="MeshInstance3D" parent="BanderitasFestiveFlags"]
+transform = Transform3D(1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, -0.5, -0.15, 0)
+material_override = SubResource("Mat_banderitas_green")
+mesh = SubResource("PrismMesh_flag")
+
+[node name="Flag5" type="MeshInstance3D" parent="BanderitasFestiveFlags"]
+transform = Transform3D(1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, 1.0, -0.15, 0)
+material_override = SubResource("Mat_banderitas_red")
+mesh = SubResource("PrismMesh_flag")
+
+[node name="Flag6" type="MeshInstance3D" parent="BanderitasFestiveFlags"]
+transform = Transform3D(1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, 2.5, -0.15, 0)
+material_override = SubResource("Mat_banderitas_yellow")
+mesh = SubResource("PrismMesh_flag")
+
+[node name="Flag7" type="MeshInstance3D" parent="BanderitasFestiveFlags"]
+transform = Transform3D(1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, 4.0, -0.15, 0)
+material_override = SubResource("Mat_banderitas_blue")
+mesh = SubResource("PrismMesh_flag")
+
+[node name="Flag8" type="MeshInstance3D" parent="BanderitasFestiveFlags"]
+transform = Transform3D(1, 0, 0, 0, -1, 8.74228e-08, 0, -8.74228e-08, -1, 5.5, -0.15, 0)
+material_override = SubResource("Mat_banderitas_green")
+mesh = SubResource("PrismMesh_flag")
