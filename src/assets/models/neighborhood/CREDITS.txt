@@ -1,0 +1,9 @@
+# 3D Assets License & Attribution
+
+The 3D models in this directory are sourced from Kenney (https://kenney.nl / https://github.com/KenneyNL):
+- Starter-Kit-City-Builder (buildings, trees, lamp posts)
+- Starter-Kit-Racing (vehicles, trees)
+
+License: CC0 1.0 Universal (Public Domain Dedication)
+- Free for personal and commercial use.
+- No rights reserved. You may copy, modify, distribute, and perform the work without asking permission.

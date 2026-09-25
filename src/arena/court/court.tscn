@@ -47,13 +47,13 @@ material = SubResource("ShaderMaterial_chalk_yellow")
 size = Vector3(0.26, 0.04, 15.2)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_back"]
-size = Vector3(16, 3, 5)
+size = Vector3(11, 3, 5)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_home"]
-size = Vector3(16, 3, 5)
+size = Vector3(11, 3, 5)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_oob"]
-size = Vector3(5, 3, 20)
+size = Vector3(14, 4, 16)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_quadrant"]
 size = Vector3(5.2, 3, 4.8)
@@ -295,7 +295,7 @@ collision_mask = 2
 shape = SubResource("BoxShape3D_home")
 
 [node name="OutOfBoundsLeft" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.0, 1.5, 7.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.5, 2.0, 7.5)
 collision_layer = 4
 collision_mask = 2
 
@@ -303,7 +303,7 @@ collision_mask = 2
 shape = SubResource("BoxShape3D_oob")
 
 [node name="OutOfBoundsRight" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.0, 1.5, 7.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.5, 2.0, 7.5)
 collision_layer = 4
 collision_mask = 2
 

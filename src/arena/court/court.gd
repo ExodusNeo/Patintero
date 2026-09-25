@@ -86,6 +86,19 @@ func _on_box_entered(body: Node3D, box_id: int) -> void:
 			GameManager.add_runner_points(5, "%s returning: passed Front Line (+5 pts)" % rname)
 			runner_line_passed.emit(pid, 5, "FRONT RETURN")
 
+func _physics_process(_delta: float) -> void:
+	var players_node := get_node_or_null("../Players")
+	if not players_node:
+		return
+	for child in players_node.get_children():
+		if child is CharacterBody3D and _is_runner(child):
+			var z_pos: float = child.global_position.z
+			var x_pos: float = child.global_position.x
+			# If runner is between entrance and back line, they must stay inside court boundary (|X| <= 5.5m)
+			if z_pos >= -0.2 and z_pos <= 15.2:
+				if abs(x_pos) > 5.55:
+					_handle_out_of_bounds(child)
+
 func _on_back_zone_entered(body: Node3D) -> void:
 	if not _is_runner(body):
 		return
@@ -94,6 +107,10 @@ func _on_back_zone_entered(body: Node3D) -> void:
 	var prog := _get_or_create_progress(pid)
 	
 	if not prog["has_reached_back"]:
+		# Must have legitimately progressed through Box 1/2, Box 3/4, and Box 5/6
+		if prog["outbound_tier"] < 3:
+			GameManager.show_combat_banner("⚠️ Must cross all boxes to reach the back!", Color(1.0, 0.6, 0.2))
+			return
 		prog["has_reached_back"] = true
 		prog["outbound_tier"] = 4
 		GameManager.add_runner_points(5, "★ %s REACHED THE BACK LINE! (+5 pts) ★" % rname)
@@ -107,6 +124,10 @@ func _on_home_zone_entered(body: Node3D) -> void:
 	var prog := _get_or_create_progress(pid)
 	
 	if prog["has_reached_back"]:
+		# Must have legitimately returned through all return boxes
+		if prog["inbound_tier"] < 3:
+			GameManager.show_combat_banner("⚠️ Must return through all boxes to score home!", Color(1.0, 0.6, 0.2))
+			return
 		# Completed full round trip! HOME RUN!
 		prog["has_reached_back"] = false
 		prog["outbound_tier"] = 0
@@ -115,12 +136,28 @@ func _on_home_zone_entered(body: Node3D) -> void:
 		runner_scored_home.emit(pid)
 
 func _on_out_of_bounds_entered(body: Node3D) -> void:
-	if _is_runner(body):
-		if body.global_position.z >= -0.5 and body.global_position.z <= 15.5:
-			var pid := _get_runner_id(body)
-			out_of_bounds_triggered.emit(pid)
-			var p_name := _get_runner_name(body)
-			NetworkManager.trigger_foul(pid, "%s Stepped Out of Bounds!" % p_name)
+	if not _is_runner(body):
+		return
+	_handle_out_of_bounds(body)
+
+func _handle_out_of_bounds(body: Node3D) -> void:
+	var pid := _get_runner_id(body)
+	var p_name := _get_runner_name(body)
+	
+	# Reset progress for this attempt
+	runner_progress[pid] = {
+		"outbound_tier": 0,
+		"inbound_tier": 0,
+		"has_reached_back": false
+	}
+	
+	# Penalize runner by resetting position to staging area
+	if body.has_method("on_tagged"):
+		body.on_tagged()
+	
+	out_of_bounds_triggered.emit(pid)
+	NetworkManager.trigger_foul(pid, "%s Stepped Out of Bounds!" % p_name)
+	GameManager.show_combat_banner("❌ OUT OF BOUNDS FOUL! Reset to start.", Color(1.0, 0.25, 0.25))
 
 func _on_player_tagged_reset(_runner_name: String, _tagger: String) -> void:
 	# Reset progress for the tagged runner
