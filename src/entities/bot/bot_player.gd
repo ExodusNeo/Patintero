@@ -71,7 +71,7 @@ func _ready() -> void:
 		peer_id = get_instance_id()
 	player_name = "🤖 %s" % bot_name
 	collision_layer = 2 # Player layer
-	collision_mask = 1 | 2
+	collision_mask = 1 # Collide with World/Ground (1)
 	name_label.text = "%s\n[%s]" % [player_name, NetworkManager.get_role_name(role)]
 	_apply_role_appearance()
 	_spawn_at_role_position()
@@ -127,6 +127,7 @@ func _physics_process(delta: float) -> void:
 		_ai_line_guard_tick(delta)
 	
 	move_and_slide()
+
 
 # Called when tagged by a defender
 func on_tagged() -> void:
@@ -239,66 +240,90 @@ func _ai_patotot_tick(delta: float) -> void:
 	
 	guard_reaction_timer -= delta
 	if guard_reaction_timer <= 0.0:
-		guard_reaction_timer = randf_range(0.12, 0.18)
+		guard_reaction_timer = randf_range(0.10, 0.16)
 		if target_runner:
 			perceived_runner_x = target_runner.global_position.x
 			perceived_runner_z = target_runner.global_position.z
 	
-	# Decision: switch to spine if a runner has penetrated deep into boxes (Z > 3.0)
-	if target_runner and target_runner.global_position.z > 3.0 and not is_patotot_on_spine:
-		# Head toward center to switch to spine
-		if abs(global_position.x) > 0.3:
-			velocity.x = move_toward(velocity.x, -sign(global_position.x) * GUARD_TRACK_SPEED, GUARD_ACCEL * delta)
-			velocity.z = 0.0
-		else:
-			is_patotot_on_spine = true
-			global_position.x = 0.0
-	elif (not target_runner or target_runner.global_position.z <= 2.0) and is_patotot_on_spine:
-		# Return to front line
-		if global_position.z > 0.4:
-			velocity.z = move_toward(velocity.z, -GUARD_TRACK_SPEED, GUARD_ACCEL * delta)
-			velocity.x = 0.0
-		else:
-			is_patotot_on_spine = false
-			global_position.z = 0.0
+	# Determine if Patotot should be on the Center Spine or Front Line:
+	# If any runner has crossed into the court (Z > 0.6), Captain commands the Center Spine (X = 0)
+	var runner_in_court: bool = target_runner != null and perceived_runner_z > 0.6
 	
-	if is_patotot_on_spine:
-		# Move along spine (Z axis) to cut off runner
-		global_position.x = move_toward(global_position.x, 0.0, 0.1)
-		velocity.x = 0.0
+	if runner_in_court:
+		# --- CENTER SPINE MODE (Z Axis, X locked to 0) ---
+		# 1. Slide smoothly onto Center Spine (X = 0)
+		if abs(global_position.x) > 0.15:
+			velocity.x = move_toward(velocity.x, -sign(global_position.x) * GUARD_TRACK_SPEED, GUARD_ACCEL * delta)
+		else:
+			global_position.x = 0.0
+			velocity.x = 0.0
+			is_patotot_on_spine = true
+		
+		# 2. Track runner along spine (Z axis: 0.0 to 15.0)
 		if target_runner:
 			var dz: float = perceived_runner_z - global_position.z
 			var desired_vz: float = 0.0
-			if abs(dz) > 0.25:
-				desired_vz = sign(dz) * GUARD_TRACK_SPEED
+			if abs(dz) > 0.2:
+				desired_vz = clamp(dz * 4.0, -GUARD_TRACK_SPEED, GUARD_TRACK_SPEED)
 			velocity.z = move_toward(velocity.z, desired_vz, GUARD_ACCEL * delta)
+			
+			# Face the runner into whatever lane/box they are currently in
+			var look_offset: Vector3 = target_runner.global_position - global_position
+			look_offset.y = 0.0
+			if look_offset.length() > 0.2:
+				rotation.y = lerp_angle(rotation.y, atan2(-look_offset.x, -look_offset.z), 10.0 * delta)
+			
+			# Tag runner if in reach
 			if global_position.distance_to(target_runner.global_position) < 1.4 and tag_cooldown <= 0.0:
 				_attempt_tag()
 		else:
 			velocity.z = move_toward(velocity.z, 0.0, GUARD_ACCEL * delta)
+		
+		# Clamp inside court spine limits (0.0 to 15.0)
 		if (global_position.z <= 0.0 and velocity.z < 0) or (global_position.z >= 15.0 and velocity.z > 0):
 			velocity.z = 0.0
+			global_position.z = clamp(global_position.z, 0.0, 15.0)
 	else:
-		# Guard Front Line (X axis)
-		global_position.z = move_toward(global_position.z, 0.0, 0.1)
-		velocity.z = 0.0
-		if target_runner and target_runner.global_position.z < 3.2:
-			var dx: float = perceived_runner_x - global_position.x
-			var desired_vx: float = 0.0
-			if abs(dx) > 0.25:
-				desired_vx = sign(dx) * GUARD_TRACK_SPEED
-			velocity.x = move_toward(velocity.x, desired_vx, GUARD_ACCEL * delta)
-			if global_position.distance_to(target_runner.global_position) < 1.4 and tag_cooldown <= 0.0:
-				_attempt_tag()
+		# --- FRONT LINE MODE (X Axis, Z locked to 0) ---
+		# 1. If returning from spine, move back to Front Line (Z = 0)
+		if global_position.z > 0.2:
+			velocity.z = move_toward(velocity.z, -GUARD_TRACK_SPEED, GUARD_ACCEL * delta)
+			velocity.x = 0.0
 		else:
-			if global_position.x >= COURT_HALF_WIDTH - 0.8:
-				patrol_dir = -1.0
-			elif global_position.x <= -COURT_HALF_WIDTH + 0.8:
-				patrol_dir = 1.0
-			var desired_vx: float = patrol_dir * GUARD_PATROL_SPEED
-			velocity.x = move_toward(velocity.x, desired_vx, GUARD_ACCEL * delta)
+			global_position.z = 0.0
+			velocity.z = 0.0
+			is_patotot_on_spine = false
+			
+			# 2. Track runner laterally on Front Line
+			if target_runner:
+				var dx: float = perceived_runner_x - global_position.x
+				var desired_vx: float = 0.0
+				if abs(dx) > 0.2:
+					desired_vx = clamp(dx * 4.0, -GUARD_TRACK_SPEED, GUARD_TRACK_SPEED)
+				velocity.x = move_toward(velocity.x, desired_vx, GUARD_ACCEL * delta)
+				
+				# Face the runner outside
+				var look_offset: Vector3 = target_runner.global_position - global_position
+				look_offset.y = 0.0
+				if look_offset.length() > 0.2:
+					rotation.y = lerp_angle(rotation.y, atan2(-look_offset.x, -look_offset.z), 10.0 * delta)
+				
+				# Tag runner if in reach
+				if global_position.distance_to(target_runner.global_position) < 1.4 and tag_cooldown <= 0.0:
+					_attempt_tag()
+			else:
+				# Patrol front line if no runner active
+				if global_position.x >= COURT_HALF_WIDTH - 0.8:
+					patrol_dir = -1.0
+				elif global_position.x <= -COURT_HALF_WIDTH + 0.8:
+					patrol_dir = 1.0
+				var desired_vx: float = patrol_dir * GUARD_PATROL_SPEED
+				velocity.x = move_toward(velocity.x, desired_vx, GUARD_ACCEL * delta)
+		
+		# Clamp inside line width
 		if (global_position.x <= -COURT_HALF_WIDTH and velocity.x < 0) or (global_position.x >= COURT_HALF_WIDTH and velocity.x > 0):
 			velocity.x = 0.0
+			global_position.x = clamp(global_position.x, -COURT_HALF_WIDTH, COURT_HALF_WIDTH)
 
 # --- SMART AI RUNNER (Corridor Lanes, Feinting, Baiting & Line Dashing) ---
 func _ai_runner_tick(delta: float) -> void:

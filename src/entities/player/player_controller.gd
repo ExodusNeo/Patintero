@@ -81,7 +81,7 @@ func _ready() -> void:
 	floor_constant_speed = true
 	floor_stop_on_slope = true
 	collision_layer = 2 # Player layer
-	collision_mask = 1 | 2 # Collide with World (1) and Players (2)
+	collision_mask = 1 # Collide with World/Ground (1)
 	
 	if name.is_valid_int():
 		peer_id = name.to_int()

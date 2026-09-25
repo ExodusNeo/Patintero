@@ -34,12 +34,28 @@ func _on_player_tagged(runner_name: String, _tagger_name: String) -> void:
 				if child.has_method("on_tagged"):
 					child.on_tagged()
 
+func _get_initial_role_position(r: NetworkManager.Role) -> Vector3:
+	match r:
+		NetworkManager.Role.RUNNER:
+			return Vector3(0.0, 0.9, -3.5)
+		NetworkManager.Role.PATOTOT:
+			return Vector3(0.0, 0.9, 0.0)
+		NetworkManager.Role.LINE_GUARD_1:
+			return Vector3(randf_range(-2.0, 2.0), 0.9, 5.0)
+		NetworkManager.Role.LINE_GUARD_2:
+			return Vector3(randf_range(-2.0, 2.0), 0.9, 10.0)
+		NetworkManager.Role.LINE_GUARD_BACK:
+			return Vector3(randf_range(-2.0, 2.0), 0.9, 15.0)
+		_:
+			return Vector3(0.0, 0.9, 0.0)
+
 func _spawn_local_player(id: int) -> void:
 	var player: CharacterBody3D = PLAYER_SCENE.instantiate()
 	player.name = str(id)
 	player.peer_id = id
 	player.role = NetworkManager.local_role
 	player.player_name = NetworkManager.local_name
+	player.position = _get_initial_role_position(player.role)
 	players_container.add_child(player)
 	hud.set_local_player(player)
 
@@ -70,6 +86,7 @@ func _create_bot(b_name: String, b_role: NetworkManager.Role) -> void:
 	var bot: CharacterBody3D = BOT_SCENE.instantiate()
 	bot.bot_name = b_name
 	bot.role = b_role
+	bot.position = _get_initial_role_position(b_role)
 	players_container.add_child(bot)
 
 func _spawn_network_player(id: int) -> void:
@@ -79,6 +96,7 @@ func _spawn_network_player(id: int) -> void:
 	var info: Dictionary = NetworkManager.players.get(id, {})
 	player.player_name = info.get("name", "Player %d" % id)
 	player.role = info.get("role", NetworkManager.Role.RUNNER)
+	player.position = _get_initial_role_position(player.role)
 	players_container.add_child(player)
 
 func _despawn_network_player(id: int) -> void:
