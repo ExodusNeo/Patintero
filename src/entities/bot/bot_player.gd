@@ -507,13 +507,20 @@ func _attempt_tag() -> void:
 		for i in range(tag_cast.get_collision_count()):
 			var c := tag_cast.get_collider(i)
 			if c != self and "role" in c and c.role == NetworkManager.Role.RUNNER:
+				var is_sliding: bool = c.is_sliding if "is_sliding" in c else false
+				if is_sliding:
+					var dist: float = global_position.distance_to(c.global_position)
+					if dist > 0.95:
+						continue # Evaded! Runner slid under standing tag
 				var runner_name: String = c.player_name if "player_name" in c else c.bot_name if "bot_name" in c else "Runner"
 				NetworkManager.trigger_tag(c.peer_id if "peer_id" in c else 0, peer_id, runner_name, player_name)
 				tagged = true
 				break
 	
-	# Fallback distance reach tag if within 1.6m
+	# Fallback distance reach tag
 	if not tagged and target_runner and is_instance_valid(target_runner):
-		if global_position.distance_to(target_runner.global_position) <= 1.6:
+		var target_sliding: bool = target_runner.is_sliding if "is_sliding" in target_runner else false
+		var tag_range: float = 0.9 if target_sliding else 1.5
+		if global_position.distance_to(target_runner.global_position) <= tag_range:
 			var runner_name: String = target_runner.player_name if "player_name" in target_runner else target_runner.bot_name if "bot_name" in target_runner else "Runner"
 			NetworkManager.trigger_tag(target_runner.peer_id if "peer_id" in target_runner else 0, peer_id, runner_name, player_name)

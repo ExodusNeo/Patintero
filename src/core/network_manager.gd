@@ -42,6 +42,32 @@ func _setup_default_inputs() -> void:
 	_add_key_action("switch_axis", [KEY_E, KEY_TAB])
 	_add_mouse_action("tag", MOUSE_BUTTON_LEFT)
 	_add_key_action("tag_key", [KEY_F, KEY_SPACE])
+	
+	# Runner Juke Actions
+	_add_key_action("juke_left", [KEY_Q])
+	_add_key_action("juke_right", [KEY_E])
+
+	# Gamepad / Controller Mappings (input-systems)
+	_add_joy_axis("move_left", JOY_AXIS_LEFT_X, -1.0)
+	_add_joy_axis("move_right", JOY_AXIS_LEFT_X, 1.0)
+	_add_joy_axis("move_forward", JOY_AXIS_LEFT_Y, -1.0)
+	_add_joy_axis("move_backward", JOY_AXIS_LEFT_Y, 1.0)
+	
+	_add_joy_button("move_forward", JOY_BUTTON_DPAD_UP)
+	_add_joy_button("move_backward", JOY_BUTTON_DPAD_DOWN)
+	_add_joy_button("move_left", JOY_BUTTON_DPAD_LEFT)
+	_add_joy_button("move_right", JOY_BUTTON_DPAD_RIGHT)
+	
+	_add_joy_button("jump", JOY_BUTTON_A)
+	_add_joy_button("crouch", JOY_BUTTON_B)
+	_add_joy_button("crouch", JOY_BUTTON_RIGHT_STICK)
+	_add_joy_button("sprint", JOY_BUTTON_LEFT_STICK)
+	_add_joy_axis("sprint", JOY_AXIS_TRIGGER_LEFT, 1.0)
+	_add_joy_button("switch_axis", JOY_BUTTON_Y)
+	_add_joy_button("tag_key", JOY_BUTTON_X)
+	_add_joy_axis("tag", JOY_AXIS_TRIGGER_RIGHT, 1.0)
+	_add_joy_button("juke_left", JOY_BUTTON_LEFT_SHOULDER)
+	_add_joy_button("juke_right", JOY_BUTTON_RIGHT_SHOULDER)
 
 func _add_key_action(action_name: String, keys: Array) -> void:
 	if not InputMap.has_action(action_name):
@@ -57,6 +83,21 @@ func _add_mouse_action(action_name: String, button_index: MouseButton) -> void:
 		var ev := InputEventMouseButton.new()
 		ev.button_index = button_index
 		InputMap.action_add_event(action_name, ev)
+
+func _add_joy_button(action_name: String, button: JoyButton) -> void:
+	if not InputMap.has_action(action_name):
+		InputMap.add_action(action_name)
+	var ev := InputEventJoypadButton.new()
+	ev.button_index = button
+	InputMap.action_add_event(action_name, ev)
+
+func _add_joy_axis(action_name: String, axis: JoyAxis, axis_value: float) -> void:
+	if not InputMap.has_action(action_name):
+		InputMap.add_action(action_name)
+	var ev := InputEventJoypadMotion.new()
+	ev.axis = axis
+	ev.axis_value = axis_value
+	InputMap.action_add_event(action_name, ev)
 
 func host_game(player_name: String, role: Role, port: int = DEFAULT_PORT) -> Error:
 	is_solo_test = false

@@ -279,17 +279,51 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 20.0
-offset_top = -70.0
+offset_top = -105.0
 offset_right = -20.0
-offset_bottom = -16.0
+offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4
+
+[node name="StaminaWarningLabel" type="Label" parent="BottomBar"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.25, 0.25, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 13
+text = "⚠️ LOW STAMINA - EXHAUSTED!"
+horizontal_alignment = 1
+
+[node name="AbilityHBox" type="HBoxContainer" parent="BottomBar"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Ability1Label" type="Label" parent="BottomBar/AbilityHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 13
+text = "SLIDE: READY [CTRL]"
+horizontal_alignment = 1
+
+[node name="Ability2Label" type="Label" parent="BottomBar/AbilityHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 13
+text = "JUKE: READY [Q / E]"
+horizontal_alignment = 1
 
 [node name="StaminaBar" type="ProgressBar" parent="BottomBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(320, 14)
+custom_minimum_size = Vector2(340, 13)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
@@ -300,6 +334,6 @@ show_percentage = false
 layout_mode = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 5
-theme_override_font_sizes/font_size = 13
-text = "[ESC] Toggle Mouse | [WASD] Move | [Q/E] Lean | [Shift] Sprint | [L-Click / F] Tag"
+theme_override_font_sizes/font_size = 12
+text = "[WASD/Stick] Move | [Shift/L3] Sprint | [Ctrl/B] Slide/Crouch | [Q/E/LB/RB] Juke/Lean | [L-Click/R2] Tag"
 horizontal_alignment = 1

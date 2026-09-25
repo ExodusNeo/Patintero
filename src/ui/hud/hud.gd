@@ -28,6 +28,11 @@ extends CanvasLayer
 @onready var summary_detail_label: Label = %SummaryDetailLabel
 @onready var summary_button: Button = %SummaryButton
 
+@onready var stamina_warning_label: Label = %StaminaWarningLabel
+@onready var ability1_label: Label = %Ability1Label
+@onready var ability2_label: Label = %Ability2Label
+@onready var dot: ColorRect = $Crosshair/Dot
+
 var local_player: CharacterBody3D = null
 var current_box_num: int = 0
 var has_turned_around: bool = false
@@ -59,17 +64,17 @@ func _setup_role_ui() -> void:
 	match role:
 		NetworkManager.Role.RUNNER:
 			role_label.modulate = Color(0.3, 1.0, 0.4)
-			objective_label.text = "Sprint through 6 boxes to back line, then return home! [Shift] Sprint, [Q/E] Lean."
+			objective_label.text = "Sprint through 6 boxes to back line, then return home! [Shift] Sprint, [Ctrl/B] Slide, [Q/E] Juke."
 			stamina_bar.visible = true
 			patotot_indicator.visible = false
 		NetworkManager.Role.PATOTOT:
 			role_label.modulate = Color(1.0, 0.85, 0.2)
-			objective_label.text = "Guard Front Line. Press [E] or [Tab] near center to switch to CENTER SPINE! [L-Click/F] Tag!"
+			objective_label.text = "Guard Front Line. [E] near center to switch to Center Spine! Hold [Shift] on spine for BURST! [L-Click/R2] Tag."
 			stamina_bar.visible = false
 			patotot_indicator.visible = true
 		_:
 			role_label.modulate = Color(1.0, 0.3, 0.3)
-			objective_label.text = "Slide along chalk line with [A/D]. Aim crosshair and [Left Click / F] to TAG runners! [Q/E] Lean."
+			objective_label.text = "Slide along line with [A/D]. Tap [L-Click/R2] Quick Tag, or Hold to CHARGE Wide Sweep! [Q/E] Lean."
 			stamina_bar.visible = false
 			patotot_indicator.visible = false
 
@@ -155,15 +160,96 @@ func _process(delta: float) -> void:
 	
 	if is_instance_valid(local_player):
 		if "role" in local_player and local_player.role == NetworkManager.Role.RUNNER:
-			stamina_bar.value = local_player.stamina
-			_update_runner_zone_text()
+			_process_runner_hud()
 		elif "role" in local_player and local_player.role == NetworkManager.Role.PATOTOT:
-			if local_player.is_patotot_on_spine:
-				patotot_indicator.text = "CURRENT AXIS: [CENTER SPINE (Z)] - Press [E] to return to Front Line"
-				patotot_indicator.modulate = Color(1.0, 0.4, 0.2)
-			else:
-				patotot_indicator.text = "CURRENT AXIS: [FRONT LINE (X)] - Press [E] near center to switch to Spine"
-				patotot_indicator.modulate = Color(1.0, 0.85, 0.2)
+			_process_patotot_hud()
+		else:
+			_process_guard_hud()
+
+func _process_runner_hud() -> void:
+	stamina_bar.value = local_player.stamina
+	_update_runner_zone_text()
+	
+	# Low Stamina Warning Pulse
+	if local_player.stamina < 25.0:
+		stamina_warning_label.visible = true
+		stamina_warning_label.modulate.a = 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.012)
+		stamina_bar.modulate = Color(1.0, 0.35, 0.35)
+	else:
+		stamina_warning_label.visible = false
+		stamina_bar.modulate = Color(1.0, 1.0, 1.0)
+	
+	# Slide status
+	if local_player.is_sliding:
+		ability1_label.text = "⚡ SLIDING..."
+		ability1_label.modulate = Color(0.3, 1.0, 0.5)
+	elif local_player.slide_cooldown > 0.0:
+		ability1_label.text = "⏳ SLIDE CD: %.1fs" % local_player.slide_cooldown
+		ability1_label.modulate = Color(0.7, 0.7, 0.7)
+	elif local_player.stamina < local_player.SLIDE_STAMINA_COST:
+		ability1_label.text = "❌ SLIDE: LOW STAMINA"
+		ability1_label.modulate = Color(0.8, 0.4, 0.4)
+	else:
+		ability1_label.text = "✔ SLIDE [CTRL/B]: READY"
+		ability1_label.modulate = Color(0.4, 1.0, 0.5)
+	
+	# Juke status
+	if local_player.juke_cooldown > 0.0:
+		ability2_label.text = "⏳ JUKE CD: %.1fs" % local_player.juke_cooldown
+		ability2_label.modulate = Color(0.7, 0.7, 0.7)
+	elif local_player.stamina < local_player.JUKE_STAMINA_COST:
+		ability2_label.text = "❌ JUKE: LOW STAMINA"
+		ability2_label.modulate = Color(0.8, 0.4, 0.4)
+	else:
+		ability2_label.text = "✔ JUKE [Q/E | LB/RB]: READY"
+		ability2_label.modulate = Color(0.4, 1.0, 0.5)
+
+func _process_patotot_hud() -> void:
+	stamina_warning_label.visible = false
+	if local_player.is_patotot_on_spine:
+		patotot_indicator.text = "CURRENT AXIS: [CENTER SPINE (Z)] - Press [E] to return to Front Line"
+		patotot_indicator.modulate = Color(1.0, 0.4, 0.2)
+		
+		# Spine burst status
+		if local_player.spine_burst_timer > 0.0:
+			ability1_label.text = "⚡ BURST ACTIVE: %.1fs" % local_player.spine_burst_timer
+			ability1_label.modulate = Color(1.0, 0.5, 0.1)
+		elif local_player.spine_burst_cooldown > 0.0:
+			ability1_label.text = "⏳ BURST CD: %.1fs" % local_player.spine_burst_cooldown
+			ability1_label.modulate = Color(0.7, 0.7, 0.7)
+		else:
+			ability1_label.text = "✔ SPINE BURST [SHIFT/L3]: READY"
+			ability1_label.modulate = Color(1.0, 0.85, 0.2)
+	else:
+		patotot_indicator.text = "CURRENT AXIS: [FRONT LINE (X)] - Press [E] near center to switch to Spine"
+		patotot_indicator.modulate = Color(1.0, 0.85, 0.2)
+		ability1_label.text = "LINE SLIDE: [A / D]"
+		ability1_label.modulate = Color(0.85, 0.85, 0.85)
+	
+	_update_tag_hud_ability(ability2_label)
+
+func _process_guard_hud() -> void:
+	stamina_warning_label.visible = false
+	_update_tag_hud_ability(ability1_label)
+	ability2_label.text = "PEEK LEAN: [Q / E]"
+	ability2_label.modulate = Color(0.7, 0.8, 1.0)
+
+func _update_tag_hud_ability(target_label: Label) -> void:
+	if local_player.tag_recovery_stun > 0.0:
+		target_label.text = "⚠️ WHIFF STUNNED (%.1fs)" % local_player.tag_recovery_stun
+		target_label.modulate = Color(1.0, 0.2, 0.2)
+		dot.color = Color(1.0, 0.2, 0.2, 0.9)
+	elif local_player.is_charging_tag:
+		var pct: int = int(clamp(local_player.tag_charge_time / local_player.MAX_TAG_CHARGE, 0.0, 1.0) * 100.0)
+		target_label.text = "🔥 CHARGING SWEEP: %d%%" % pct
+		target_label.modulate = Color(1.0, 0.5, 0.1)
+		dot.color = Color(1.0, 0.5, 0.1, 1.0)
+		dot.custom_minimum_size = Vector2(9, 9)
+	else:
+		target_label.text = "TAG [L-CLICK/R2]: TAP OR CHARGE"
+		target_label.modulate = Color(0.9, 0.9, 0.9)
+		dot.color = Color(1.0, 1.0, 1.0, 0.8)
+		dot.custom_minimum_size = Vector2(5, 5)
 
 func _update_runner_zone_text() -> void:
 	var z := local_player.global_position.z
