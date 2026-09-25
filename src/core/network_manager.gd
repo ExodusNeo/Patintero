@@ -100,7 +100,7 @@ func start_solo_test(selected_role: Role, player_name: String = "SoloTester") ->
 		"role": local_role
 	}
 	game_started.emit()
-	get_tree().change_scene_to_file("res://scenes/world.tscn")
+	get_tree().change_scene_to_file("res://src/arena/world/world.tscn")
 
 func start_multiplayer_match() -> void:
 	if multiplayer.is_server():
@@ -109,7 +109,7 @@ func start_multiplayer_match() -> void:
 @rpc("authority", "call_local", "reliable")
 func load_world() -> void:
 	game_started.emit()
-	get_tree().change_scene_to_file("res://scenes/world.tscn")
+	get_tree().change_scene_to_file("res://src/arena/world/world.tscn")
 
 func _on_peer_connected(id: int) -> void:
 	print("Peer connected: ", id)
@@ -134,7 +134,7 @@ func _on_server_disconnected() -> void:
 	print("Server disconnected.")
 	players.clear()
 	multiplayer.multiplayer_peer = null
-	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+	get_tree().change_scene_to_file("res://src/ui/menu/main_menu.tscn")
 
 @rpc("any_peer", "reliable")
 func register_player(info: Dictionary) -> void:

@@ -6,16 +6,28 @@ This roadmap organizes the evolution of **Patintero 3D** from a working prototyp
 
 ```mermaid
 flowchart TD
-    P1["Phase 1: Audio & Atmosphere\n(godot-audio, audio-design)"] --> P2["Phase 2: Single-Player Bot AI\n(game-ai, godot-physics)"]
-    P2 --> P3["Phase 3: Tournament Flow & Scoring\n(godot-signals-groups, godot-gdscript)"]
-    P3 --> P4["Phase 4: Role Abilities & Game Feel\n(godot-animation, physics-tuning)"]
-    P4 --> P5["Phase 5: Barangay Worldbuilding\n(godot-3d-essentials, shader-programming)"]
-    P5 --> P6["Phase 6: Networking & itch.io Release\n(godot-multiplayer, godot-export, itch-publish)"]
+	P1["Phase 1: Audio & Atmosphere (COMPLETED)\n(godot-audio, audio-design)"] --> P2["Phase 2: Single-Player Bot AI (COMPLETED)\n(game-ai, godot-physics)"]
+	P2 --> P3["Phase 3: Tournament Flow & Scoring (COMPLETED)\n(godot-signals-groups, godot-gdscript)"]
+	P3 --> P4["Phase 4: Role Abilities & Game Feel\n(godot-animation, physics-tuning)"]
+	P4 --> P5["Phase 5: Barangay Worldbuilding\n(godot-3d-essentials, shader-programming)"]
+	P5 --> P6["Phase 6: Networking & itch.io Release\n(godot-multiplayer, godot-export, itch-publish)"]
 ```
 
 ---
 
-## Phase 1: Soundscape & Audio Architecture
+## Modular Project Architecture
+All assets are structured in clean, compact, domain-driven directories under `src/`:
+- `src/core/`: Autoload singletons (`game_manager.gd`, `network_manager.gd`, `audio_manager.gd`).
+- `src/entities/player/`: First-person controller scene and scripts.
+- `src/entities/bot/`: Autonomous AI runner and defender bots.
+- `src/arena/court/`: 3D Patintero court with quadrant triggers, chalk, and curbs.
+- `src/arena/world/`: 3D sky, sun lighting, and match orchestrator.
+- `src/ui/hud/`: Live scoreboard, inning timer, audio meter, and modals.
+- `src/ui/menu/`: Main menu with role selection, networking, and sound settings.
+
+---
+
+## Phase 1: Soundscape & Audio Architecture [COMPLETED]
 **Mapped Skills:** `godot-audio`, `audio-design`
 
 Patintero is driven by street noise, shout calls, and the physical sound of feet scuffing against asphalt. Without audio, first-person tension is halved.
@@ -34,24 +46,24 @@ Patintero is driven by street noise, shout calls, and the physical sound of feet
 
 ---
 
-## Phase 2: Solo Practice & Bot AI
+## Phase 2: Solo Practice & Bot AI [COMPLETED]
 **Mapped Skills:** `game-ai`, `godot-physics`
 
 A multiplayer game needs a single-player mode so players can practice mechanics, explore roles, and play offline.
 
 ### Deliverables:
 1. **Runner Bot AI (State Machine):**
-   * **States:** `IDLE_OUTSIDE` $\rightarrow$ `PROBE_LINE` $\rightarrow$ `BAIT_GUARD` $\rightarrow$ `SPRINT_GAP` $\rightarrow$ `RETURN_LEG`.
-   * Bot scans the assigned line guard’s current X position. If the guard is committed to the left, the bot sprints through the right gap.
+   * **States:** `STAGING` $\rightarrow$ `PROBING` $\rightarrow$ `DASHING`.
+   * Smart 2-lane corridor navigation (`X = -1.9` and `X = +1.9`), safe staging buffers, line probing, feinting, and dash reflexes.
 2. **Line Guard Bot AI:**
    * Tracks the nearest active runner inside the adjacent box and mirrors their X coordinate along the line.
-   * Integrates human reaction delay (0.15s–0.25s) and reach sweeps when a runner attempts to cross.
+   * Integrates human reaction delay (0.20s–0.28s), smooth physical acceleration (`GUARD_ACCEL`), and tag sweeps.
 3. **Patotot Bot AI (Pincer Coordinator):**
-   * Switches to the **Center Spine** when runners push into Box 3/4, coordinating with horizontal line guards to corner runners against the boundary.
+   * Switches to the **Center Spine** when runners push into deep boxes, coordinating with horizontal line guards.
 
 ---
 
-## Phase 3: Match Flow, Inning Rotation & Scoring
+## Phase 3: Match Flow, Inning Rotation & Scoring [COMPLETED]
 **Mapped Skills:** `godot-signals-groups`, `godot-gdscript`
 
 Transitions the prototype from an infinite sandbox into formal matches with rounds, turnovers, and scoring.

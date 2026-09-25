@@ -4,8 +4,8 @@ extends Node3D
 @onready var spawner: MultiplayerSpawner = $MultiplayerSpawner
 @onready var hud: CanvasLayer = $HUD
 
-const PLAYER_SCENE := preload("res://scenes/player.tscn")
-const BOT_SCENE := preload("res://scenes/bot_player.tscn")
+const PLAYER_SCENE := preload("res://src/entities/player/player.tscn")
+const BOT_SCENE := preload("res://src/entities/bot/bot_player.tscn")
 
 func _ready() -> void:
 	NetworkManager.player_tagged.connect(_on_player_tagged)

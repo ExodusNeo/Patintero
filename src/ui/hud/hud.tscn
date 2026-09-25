@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/hud.gd" id="1_script"]
+[ext_resource type="Script" path="res://src/ui/hud/hud.gd" id="1_script"]
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_script")
@@ -30,13 +30,64 @@ layout_mode = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0.8)
 
+[node name="ScoreboardPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -260.0
+offset_top = 10.0
+offset_right = 260.0
+offset_bottom = 52.0
+grow_horizontal = 2
+
+[node name="Margin" type="MarginContainer" parent="ScoreboardPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 4
+
+[node name="ScoreHBox" type="HBoxContainer" parent="ScoreboardPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="RunnersScoreLabel" type="Label" parent="ScoreboardPanel/Margin/ScoreHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.45, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 18
+text = "🏃 RUNNERS: 0"
+
+[node name="TimerLabel" type="Label" parent="ScoreboardPanel/Margin/ScoreHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 20
+text = "⏱ 02:00 [R1]"
+horizontal_alignment = 1
+
+[node name="DefendersScoreLabel" type="Label" parent="ScoreboardPanel/Margin/ScoreHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.35, 0.35, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 18
+text = "🛡 DEFENSE: 0"
+
 [node name="TopBar" type="VBoxContainer" parent="."]
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 24.0
-offset_top = 18.0
+offset_top = 56.0
 offset_right = -24.0
-offset_bottom = 85.0
+offset_bottom = 120.0
 grow_horizontal = 2
 mouse_filter = 2
 theme_override_constants/separation = 4
@@ -49,7 +100,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 22
 text = "ROLE: RUNNER"
 
 [node name="Spacer" type="Control" parent="TopBar/HBox"]
@@ -61,7 +112,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 7
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "ZONE: ENTRANCE (SAFE)"
 
 [node name="Spacer2" type="Control" parent="TopBar/HBox"]
@@ -134,13 +185,13 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -280.0
-offset_top = 80.0
+offset_top = 114.0
 offset_right = 280.0
-offset_bottom = 110.0
+offset_bottom = 144.0
 grow_horizontal = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 15
 text = "CURRENT AXIS: [FRONT LINE (X)]"
 horizontal_alignment = 1
 
@@ -165,6 +216,62 @@ theme_override_font_sizes/font_size = 32
 text = "TAYA! TURNOVER!"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="MatchSummaryModal" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -140.0
+offset_right = 220.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="MatchSummaryModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="MatchSummaryModal/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SummaryTitle" type="Label" parent="MatchSummaryModal/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 24
+text = "HALFTIME SUMMARY"
+horizontal_alignment = 1
+
+[node name="SummaryScoreLabel" type="Label" parent="MatchSummaryModal/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "RUNNERS: 15 pts | DEFENSE: 10 pts"
+horizontal_alignment = 1
+
+[node name="SummaryDetailLabel" type="Label" parent="MatchSummaryModal/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Prepare for Round 2!"
+horizontal_alignment = 1
+
+[node name="SummaryButton" type="Button" parent="MatchSummaryModal/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+text = "Continue to Round 2"
 
 [node name="BottomBar" type="VBoxContainer" parent="."]
 anchors_preset = 12
