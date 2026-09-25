@@ -10,10 +10,15 @@ extends Control
 @onready var status_label: Label = %StatusLabel
 @onready var player_list_label: Label = %PlayerListLabel
 @onready var lobby_panel: PanelContainer = %LobbyPanel
+@onready var mute_btn: Button = %MuteButton
+@onready var volume_slider: HSlider = %VolumeSlider
+@onready var volume_label: Label = %VolumeLabel
+@onready var vu_meter: ProgressBar = %VUMeter
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_populate_roles()
+	_setup_volume_ui()
 	
 	host_button.pressed.connect(_on_host_pressed)
 	join_button.pressed.connect(_on_join_pressed)
@@ -22,6 +27,30 @@ func _ready() -> void:
 	
 	NetworkManager.players_updated.connect(_update_lobby_ui)
 	lobby_panel.visible = false
+
+func _setup_volume_ui() -> void:
+	volume_slider.value = AudioManager.master_volume * 100.0
+	volume_label.text = "%d%%" % int(volume_slider.value)
+	volume_slider.value_changed.connect(_on_volume_slider_changed)
+	mute_btn.pressed.connect(_on_mute_pressed)
+	AudioManager.volume_changed.connect(_on_audio_volume_changed)
+
+func _on_volume_slider_changed(val: float) -> void:
+	AudioManager.set_master_volume(val / 100.0)
+	volume_label.text = "%d%%" % int(val)
+
+func _on_mute_pressed() -> void:
+	var muted := AudioManager.toggle_mute()
+	mute_btn.text = "🔇" if muted else "🔊"
+
+func _on_audio_volume_changed(linear_val: float, is_muted: bool) -> void:
+	volume_slider.value = linear_val * 100.0
+	volume_label.text = "%d%%" % int(linear_val * 100.0)
+	mute_btn.text = "🔇" if is_muted else "🔊"
+
+func _process(delta: float) -> void:
+	var peak := AudioManager.get_peak_volume()
+	vu_meter.value = lerp(vu_meter.value, peak * 100.0, 18.0 * delta)
 
 func _populate_roles() -> void:
 	role_dropdown.clear()

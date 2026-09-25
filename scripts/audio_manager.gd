@@ -12,13 +12,44 @@ var foul_stream: AudioStreamWAV
 var player_pool: Array[AudioStreamPlayer] = []
 const POOL_SIZE := 8
 
+var master_volume: float = 0.8
+var is_muted: bool = false
+signal volume_changed(new_linear_volume: float, is_muted: bool)
+
 func _ready() -> void:
 	_generate_audio_assets()
 	_create_player_pool()
+	set_master_volume(0.8)
 	
 	# Connect to NetworkManager signals
 	NetworkManager.player_tagged.connect(func(_r, _t): play_tag_sequence())
 	NetworkManager.player_foul.connect(func(_p, _r): play_whistle(true))
+
+func set_master_volume(linear_val: float) -> void:
+	master_volume = clamp(linear_val, 0.0, 1.0)
+	var bus := AudioServer.get_bus_index("Master")
+	if master_volume <= 0.01 or is_muted:
+		AudioServer.set_bus_mute(bus, true)
+	else:
+		AudioServer.set_bus_mute(bus, false)
+		AudioServer.set_bus_volume_db(bus, linear_to_db(maxf(master_volume, 0.0001)))
+	volume_changed.emit(master_volume, is_muted)
+
+func toggle_mute() -> bool:
+	is_muted = not is_muted
+	var bus := AudioServer.get_bus_index("Master")
+	AudioServer.set_bus_mute(bus, is_muted or master_volume <= 0.01)
+	volume_changed.emit(master_volume, is_muted)
+	return is_muted
+
+func get_peak_volume() -> float:
+	var bus := AudioServer.get_bus_index("Master")
+	if is_muted or master_volume <= 0.01:
+		return 0.0
+	var peak_db := AudioServer.get_bus_peak_volume_left_db(bus, 0)
+	if peak_db < -55.0:
+		return 0.0
+	return clamp(db_to_linear(peak_db), 0.0, 1.0)
 
 func _create_player_pool() -> void:
 	for i in range(POOL_SIZE):

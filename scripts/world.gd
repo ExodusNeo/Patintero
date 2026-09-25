@@ -8,6 +8,7 @@ const PLAYER_SCENE := preload("res://scenes/player.tscn")
 const BOT_SCENE := preload("res://scenes/bot_player.tscn")
 
 func _ready() -> void:
+	NetworkManager.player_tagged.connect(_on_player_tagged)
 	if NetworkManager.is_solo_test:
 		_spawn_local_player(1)
 		_spawn_practice_bots()
@@ -24,6 +25,14 @@ func _ready() -> void:
 		
 		# Allow a frame for replication, then find our local player
 		get_tree().create_timer(0.2).timeout.connect(_link_hud_to_local_player)
+
+func _on_player_tagged(runner_name: String, _tagger_name: String) -> void:
+	for child in players_container.get_children():
+		if child is CharacterBody3D and "role" in child and child.role == NetworkManager.Role.RUNNER:
+			var c_name: String = child.player_name if "player_name" in child else child.bot_name if "bot_name" in child else ""
+			if c_name == runner_name or runner_name.contains(c_name) or c_name.contains(runner_name):
+				if child.has_method("on_tagged"):
+					child.on_tagged()
 
 func _spawn_local_player(id: int) -> void:
 	var player: CharacterBody3D = PLAYER_SCENE.instantiate()

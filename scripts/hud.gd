@@ -7,6 +7,10 @@ extends CanvasLayer
 @onready var patotot_indicator: Label = %PatototIndicator
 @onready var zone_label: Label = %ZoneLabel
 @onready var flash_overlay: ColorRect = %FlashOverlay
+@onready var mute_btn: Button = %MuteButton
+@onready var volume_slider: HSlider = %VolumeSlider
+@onready var volume_label: Label = %VolumeLabel
+@onready var vu_meter: ProgressBar = %VUMeter
 
 var local_player: CharacterBody3D = null
 var current_box_num: int = 0
@@ -16,6 +20,7 @@ func _ready() -> void:
 	NetworkManager.player_tagged.connect(_on_player_tagged)
 	NetworkManager.player_foul.connect(_on_player_foul)
 	_setup_role_ui()
+	_setup_volume_ui()
 	
 	# Connect to Court signals if court exists in tree
 	await get_tree().process_frame
@@ -51,7 +56,31 @@ func _setup_role_ui() -> void:
 			stamina_bar.visible = false
 			patotot_indicator.visible = false
 
-func _process(_delta: float) -> void:
+func _setup_volume_ui() -> void:
+	volume_slider.value = AudioManager.master_volume * 100.0
+	volume_label.text = "%d%%" % int(volume_slider.value)
+	volume_slider.value_changed.connect(_on_volume_slider_changed)
+	mute_btn.pressed.connect(_on_mute_btn_pressed)
+	AudioManager.volume_changed.connect(_on_audio_volume_changed)
+
+func _on_volume_slider_changed(val: float) -> void:
+	AudioManager.set_master_volume(val / 100.0)
+	volume_label.text = "%d%%" % int(val)
+
+func _on_mute_btn_pressed() -> void:
+	var muted := AudioManager.toggle_mute()
+	mute_btn.text = "🔇" if muted else "🔊"
+
+func _on_audio_volume_changed(linear_val: float, is_muted: bool) -> void:
+	volume_slider.value = linear_val * 100.0
+	volume_label.text = "%d%%" % int(linear_val * 100.0)
+	mute_btn.text = "🔇" if is_muted else "🔊"
+
+func _process(delta: float) -> void:
+	# Live Audio VU Meter updating smoothly
+	var peak := AudioManager.get_peak_volume()
+	vu_meter.value = lerp(vu_meter.value, peak * 100.0, 18.0 * delta)
+	
 	if is_instance_valid(local_player):
 		if "role" in local_player and local_player.role == NetworkManager.Role.RUNNER:
 			stamina_bar.value = local_player.stamina

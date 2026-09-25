@@ -321,3 +321,9 @@ func _animate_tag_reach() -> void:
 	is_tagging = false
 	if not is_multiplayer_authority():
 		reach_hand.visible = false
+
+func on_tagged() -> void:
+	if role == NetworkManager.Role.RUNNER:
+		global_position = Vector3(0, 0.9, -3.0)
+		velocity = Vector3.ZERO
+		stamina = 100.0

@@ -107,6 +107,52 @@ placeholder_text = "127.0.0.1 or LAN IP"
 [node name="HSeparator" type="HSeparator" parent="CenterContainer/VBox/FormCard/Margin/FormVBox"]
 layout_mode = 2
 
+[node name="VolumeSettingBox" type="VBoxContainer" parent="CenterContainer/VBox/FormCard/Margin/FormVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Label" type="Label" parent="CenterContainer/VBox/FormCard/Margin/FormVBox/VolumeSettingBox"]
+layout_mode = 2
+text = "Master Volume & Audio Meter:"
+
+[node name="HBox" type="HBoxContainer" parent="CenterContainer/VBox/FormCard/Margin/FormVBox/VolumeSettingBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="MuteButton" type="Button" parent="CenterContainer/VBox/FormCard/Margin/FormVBox/VolumeSettingBox/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "🔊"
+
+[node name="VolumeSlider" type="HSlider" parent="CenterContainer/VBox/FormCard/Margin/FormVBox/VolumeSettingBox/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+focus_mode = 0
+max_value = 100.0
+step = 1.0
+value = 80.0
+
+[node name="VolumeLabel" type="Label" parent="CenterContainer/VBox/FormCard/Margin/FormVBox/VolumeSettingBox/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(38, 0)
+layout_mode = 2
+text = "80%"
+horizontal_alignment = 2
+
+[node name="VUMeter" type="ProgressBar" parent="CenterContainer/VBox/FormCard/Margin/FormVBox/VolumeSettingBox/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(55, 14)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+max_value = 100.0
+value = 0.0
+show_percentage = false
+
 [node name="ButtonsBox" type="VBoxContainer" parent="CenterContainer/VBox/FormCard/Margin/FormVBox"]
 layout_mode = 2
 theme_override_constants/separation = 10
