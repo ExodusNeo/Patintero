@@ -1,0 +1,26 @@
+# Godot 4+ specific ignores
+.godot/
+
+# Imported translations
+*.translation
+
+# Mono / C# specific ignores (if used in future)
+.mono/
+data_*/
+mono_crash.*.json
+
+# Exported binaries & temporary builds
+build/
+exports/
+bin/
+*.pck
+*.exe
+*.zip
+*.apk
+
+# OS / Editor temporary files
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+*.bak
