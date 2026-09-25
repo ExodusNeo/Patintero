@@ -116,13 +116,13 @@ func _on_home_zone_entered(body: Node3D) -> void:
 
 func _on_out_of_bounds_entered(body: Node3D) -> void:
 	if _is_runner(body):
-		if body.global_position.z >= -0.5 and body.global_position.z <= 12.5:
+		if body.global_position.z >= -0.5 and body.global_position.z <= 15.5:
 			var pid := _get_runner_id(body)
 			out_of_bounds_triggered.emit(pid)
 			var p_name := _get_runner_name(body)
 			NetworkManager.trigger_foul(pid, "%s Stepped Out of Bounds!" % p_name)
 
-func _on_player_tagged_reset(runner_name: String, _tagger: String) -> void:
+func _on_player_tagged_reset(_runner_name: String, _tagger: String) -> void:
 	# Reset progress for the tagged runner
 	for pid in runner_progress.keys():
 		runner_progress[pid] = {

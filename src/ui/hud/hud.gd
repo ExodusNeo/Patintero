@@ -112,8 +112,8 @@ func _on_score_updated(r_pts: int, d_pts: int) -> void:
 	defenders_score_label.text = "🛡 DEFENSE: %d" % d_pts
 
 func _on_match_timer_updated(time_left: float) -> void:
-	var mins := int(time_left) / 60
-	var secs := int(time_left) % 60
+	var mins: int = int(time_left / 60.0)
+	var secs: int = int(time_left) % 60
 	var round_tag := "R%d" % GameManager.current_round
 	timer_label.text = "⏱ %02d:%02d [%s]" % [mins, secs, round_tag]
 	if time_left <= 30.0:
@@ -121,7 +121,7 @@ func _on_match_timer_updated(time_left: float) -> void:
 	else:
 		timer_label.modulate = Color(1.0, 0.9, 0.3)
 
-func _on_point_event_triggered(team: String, points: int, reason: String) -> void:
+func _on_point_event_triggered(team: String, _points: int, reason: String) -> void:
 	var color := Color(0.3, 1.0, 0.4)
 	if team == "DEFENDERS":
 		color = Color(1.0, 0.35, 0.35)
