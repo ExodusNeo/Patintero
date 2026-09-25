@@ -91,6 +91,7 @@ func _setup_scoreboard_ui() -> void:
 	GameManager.point_event_triggered.connect(_on_point_event_triggered)
 	GameManager.halftime_reached.connect(_on_halftime_reached)
 	GameManager.match_completed.connect(_on_match_completed)
+	GameManager.combat_banner_triggered.connect(func(txt: String, col: Color): _show_notification(txt, col))
 	summary_button.pressed.connect(_on_summary_button_pressed)
 	_on_score_updated(GameManager.runner_score, GameManager.defender_score)
 

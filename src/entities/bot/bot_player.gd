@@ -8,9 +8,9 @@ class_name BotPlayer
 @onready var reach_hand: Node3D = $ReachHand
 
 # Tunables (game-ai / godot-physics / human-reaction)
-const GUARD_TRACK_SPEED: float = 3.8
-const GUARD_PATROL_SPEED: float = 2.2
-const GUARD_ACCEL: float = 9.5
+const GUARD_TRACK_SPEED: float = 6.0
+const GUARD_PATROL_SPEED: float = 3.2
+const GUARD_ACCEL: float = 18.0
 const RUNNER_SPEED: float = 5.2
 const RUNNER_SPRINT_SPEED: float = 7.8
 const GRAVITY: float = 15.0
@@ -55,6 +55,11 @@ var has_reached_back: bool = false
 var guard_reaction_timer: float = 0.0
 var perceived_runner_x: float = 0.0
 var perceived_runner_z: float = 0.0
+
+# Feint Overcommitment / Ankle Breaker State
+var feint_override_timer: float = 0.0
+var feint_override_dir: float = 0.0
+var feint_stumble_timer: float = 0.0
 
 func _ready() -> void:
 	# godot-physics: ground snapping and collision layers
@@ -133,9 +138,18 @@ func on_tagged() -> void:
 		post_turnaround_timer = 1.0 # 1 second recovery freeze
 		chosen_lane_x = LANE_LEFT_X if randf() < 0.5 else LANE_RIGHT_X
 
+func on_feinted_by_runner(juke_dir: float, _runner: Node3D) -> void:
+	if role == NetworkManager.Role.RUNNER:
+		return
+	# Defender falls for the fake cut (Ankle Breaker!)
+	feint_override_timer = 0.48
+	feint_override_dir = juke_dir
+	feint_stumble_timer = 0.38
+	AudioManager.play_slide_skid()
+
 # --- AI LINE GUARD (Horizontal tracking with human reaction time & inertia) ---
 func _ai_line_guard_tick(delta: float) -> void:
-	var target_z: float = LINE_Z_POSITIONS.get(role, 4.0)
+	var target_z: float = LINE_Z_POSITIONS.get(role, 5.0)
 	global_position.z = move_toward(global_position.z, target_z, 0.1)
 	velocity.z = 0.0
 	
@@ -144,23 +158,32 @@ func _ai_line_guard_tick(delta: float) -> void:
 	else:
 		velocity.y = 0.0
 	
+	# Check if currently baited by runner's juke
+	if feint_override_timer > 0.0:
+		feint_override_timer -= delta
+		velocity.x = move_toward(velocity.x, feint_override_dir * (GUARD_TRACK_SPEED * 1.15), GUARD_ACCEL * delta)
+		if (global_position.x <= -COURT_HALF_WIDTH and velocity.x < 0) or (global_position.x >= COURT_HALF_WIDTH and velocity.x > 0):
+			velocity.x = 0.0
+		return
+	elif feint_stumble_timer > 0.0:
+		feint_stumble_timer -= delta
+		velocity.x = move_toward(velocity.x, 0.0, 14.0 * delta)
+		return
+	
 	target_runner = _find_nearest_runner()
 	
-	# Human perception latency: sample runner position at realistic reaction intervals
+	# Human perception latency: responsive athletic tracking
 	guard_reaction_timer -= delta
 	if guard_reaction_timer <= 0.0:
-		guard_reaction_timer = randf_range(0.30, 0.42) # 300-420ms human latency
+		guard_reaction_timer = randf_range(0.12, 0.18)
 		if target_runner:
 			perceived_runner_x = target_runner.global_position.x
-			# If runner performs a high-speed lateral juke, bot gets faked out!
-			if abs(target_runner.velocity.x) > 4.5:
-				guard_reaction_timer += 0.35
 	
-	# Only track if runner is within active engagement range (2.2m)
-	if target_runner and abs(target_runner.global_position.z - target_z) < 2.2:
+	# Only track if runner is within active engagement range (3.2m)
+	if target_runner and abs(target_runner.global_position.z - target_z) < 3.2:
 		var dx: float = perceived_runner_x - global_position.x
 		var desired_vx: float = 0.0
-		if abs(dx) > 0.4:
+		if abs(dx) > 0.25:
 			desired_vx = sign(dx) * GUARD_TRACK_SPEED
 		velocity.x = move_toward(velocity.x, desired_vx, GUARD_ACCEL * delta)
 		
@@ -168,11 +191,11 @@ func _ai_line_guard_tick(delta: float) -> void:
 		var look_offset: Vector3 = target_runner.global_position - global_position
 		look_offset.y = 0.0
 		if look_offset.length() > 0.2:
-			rotation.y = lerp_angle(rotation.y, atan2(-look_offset.x, -look_offset.z), 6.0 * delta)
+			rotation.y = lerp_angle(rotation.y, atan2(-look_offset.x, -look_offset.z), 10.0 * delta)
 		
 		# Tag runner if in reach
 		var dist: float = global_position.distance_to(target_runner.global_position)
-		if dist < 1.3 and tag_cooldown <= 0.0:
+		if dist < 1.4 and tag_cooldown <= 0.0:
 			_attempt_tag()
 	else:
 		# PATROL: Gentle slide back and forth along line with smooth deceleration
@@ -194,21 +217,37 @@ func _ai_patotot_tick(delta: float) -> void:
 	else:
 		velocity.y = 0.0
 	
+	# Feint handling for Patotot
+	if feint_override_timer > 0.0:
+		feint_override_timer -= delta
+		if is_patotot_on_spine:
+			velocity.z = move_toward(velocity.z, feint_override_dir * (GUARD_TRACK_SPEED * 1.15), GUARD_ACCEL * delta)
+			if (global_position.z <= 0.0 and velocity.z < 0) or (global_position.z >= 15.0 and velocity.z > 0):
+				velocity.z = 0.0
+		else:
+			velocity.x = move_toward(velocity.x, feint_override_dir * (GUARD_TRACK_SPEED * 1.15), GUARD_ACCEL * delta)
+			if (global_position.x <= -COURT_HALF_WIDTH and velocity.x < 0) or (global_position.x >= COURT_HALF_WIDTH and velocity.x > 0):
+				velocity.x = 0.0
+		return
+	elif feint_stumble_timer > 0.0:
+		feint_stumble_timer -= delta
+		velocity.x = move_toward(velocity.x, 0.0, 14.0 * delta)
+		velocity.z = move_toward(velocity.z, 0.0, 14.0 * delta)
+		return
+	
 	target_runner = _find_nearest_runner()
 	
 	guard_reaction_timer -= delta
 	if guard_reaction_timer <= 0.0:
-		guard_reaction_timer = randf_range(0.30, 0.42)
+		guard_reaction_timer = randf_range(0.12, 0.18)
 		if target_runner:
 			perceived_runner_x = target_runner.global_position.x
 			perceived_runner_z = target_runner.global_position.z
-			if abs(target_runner.velocity.x) > 4.5:
-				guard_reaction_timer += 0.35
 	
 	# Decision: switch to spine if a runner has penetrated deep into boxes (Z > 3.0)
 	if target_runner and target_runner.global_position.z > 3.0 and not is_patotot_on_spine:
 		# Head toward center to switch to spine
-		if abs(global_position.x) > 0.35:
+		if abs(global_position.x) > 0.3:
 			velocity.x = move_toward(velocity.x, -sign(global_position.x) * GUARD_TRACK_SPEED, GUARD_ACCEL * delta)
 			velocity.z = 0.0
 		else:
@@ -230,10 +269,10 @@ func _ai_patotot_tick(delta: float) -> void:
 		if target_runner:
 			var dz: float = perceived_runner_z - global_position.z
 			var desired_vz: float = 0.0
-			if abs(dz) > 0.4:
+			if abs(dz) > 0.25:
 				desired_vz = sign(dz) * GUARD_TRACK_SPEED
 			velocity.z = move_toward(velocity.z, desired_vz, GUARD_ACCEL * delta)
-			if global_position.distance_to(target_runner.global_position) < 1.3 and tag_cooldown <= 0.0:
+			if global_position.distance_to(target_runner.global_position) < 1.4 and tag_cooldown <= 0.0:
 				_attempt_tag()
 		else:
 			velocity.z = move_toward(velocity.z, 0.0, GUARD_ACCEL * delta)
@@ -243,13 +282,13 @@ func _ai_patotot_tick(delta: float) -> void:
 		# Guard Front Line (X axis)
 		global_position.z = move_toward(global_position.z, 0.0, 0.1)
 		velocity.z = 0.0
-		if target_runner and target_runner.global_position.z < 3.0:
+		if target_runner and target_runner.global_position.z < 3.2:
 			var dx: float = perceived_runner_x - global_position.x
 			var desired_vx: float = 0.0
-			if abs(dx) > 0.4:
+			if abs(dx) > 0.25:
 				desired_vx = sign(dx) * GUARD_TRACK_SPEED
 			velocity.x = move_toward(velocity.x, desired_vx, GUARD_ACCEL * delta)
-			if global_position.distance_to(target_runner.global_position) < 1.3 and tag_cooldown <= 0.0:
+			if global_position.distance_to(target_runner.global_position) < 1.4 and tag_cooldown <= 0.0:
 				_attempt_tag()
 		else:
 			if global_position.x >= COURT_HALF_WIDTH - 0.8:
@@ -515,9 +554,11 @@ func _attempt_tag() -> void:
 			if c != self and "role" in c and c.role == NetworkManager.Role.RUNNER:
 				var is_sliding: bool = c.is_sliding if "is_sliding" in c else false
 				if is_sliding:
-					var dist: float = global_position.distance_to(c.global_position)
-					if dist > 0.75:
-						continue # Evaded! Runner slid under standing tag
+					# SLID UNDER TAG: High standing swing passes harmlessly over sliding runner!
+					tag_cooldown = 0.75
+					AudioManager.play_juke_whoosh()
+					GameManager.show_combat_banner("🏃 SLID UNDER TAG!", Color(0.3, 1.0, 0.5))
+					continue
 				var runner_name: String = c.player_name if "player_name" in c else c.bot_name if "bot_name" in c else "Runner"
 				NetworkManager.trigger_tag(c.peer_id if "peer_id" in c else 0, peer_id, runner_name, player_name)
 				tagged = true
@@ -526,7 +567,10 @@ func _attempt_tag() -> void:
 	# Fallback distance reach tag
 	if not tagged and target_runner and is_instance_valid(target_runner):
 		var target_sliding: bool = target_runner.is_sliding if "is_sliding" in target_runner else false
-		var tag_range: float = 0.65 if target_sliding else 1.25
-		if global_position.distance_to(target_runner.global_position) <= tag_range:
+		if target_sliding:
+			tag_cooldown = 0.75
+			AudioManager.play_juke_whoosh()
+			GameManager.show_combat_banner("🏃 SLID UNDER TAG!", Color(0.3, 1.0, 0.5))
+		elif global_position.distance_to(target_runner.global_position) <= 1.35:
 			var runner_name: String = target_runner.player_name if "player_name" in target_runner else target_runner.bot_name if "bot_name" in target_runner else "Runner"
 			NetworkManager.trigger_tag(target_runner.peer_id if "peer_id" in target_runner else 0, peer_id, runner_name, player_name)

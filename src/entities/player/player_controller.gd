@@ -342,6 +342,21 @@ func _perform_juke(dir_lateral: float) -> void:
 	velocity += lateral_dir * JUKE_IMPULSE
 	camera.rotation.z = deg_to_rad(dir_lateral * -8.0)
 	AudioManager.play_juke_whoosh()
+	_notify_guards_of_juke(dir_lateral)
+
+func _notify_guards_of_juke(dir_lateral: float) -> void:
+	var feinted_count: int = 0
+	var all_players: Array[Node] = get_tree().get_nodes_in_group("players")
+	for p in all_players:
+		if p != self and "role" in p and p.role != NetworkManager.Role.RUNNER:
+			var d: float = global_position.distance_to(p.global_position)
+			var dz: float = abs(global_position.z - p.global_position.z)
+			if d < 4.8 and dz < 3.6:
+				if p.has_method("on_feinted_by_runner"):
+					p.on_feinted_by_runner(dir_lateral, self)
+					feinted_count += 1
+	if feinted_count > 0:
+		GameManager.show_combat_banner("⚡ ANKLE BREAKER! DEFENDER BITES FAKE!", Color(1.0, 0.85, 0.2))
 
 # --- LINE GUARD PHYSICS (Locked to assigned horizontal line) ---
 func _physics_line_guard(delta: float) -> void:
@@ -507,6 +522,8 @@ func _execute_tag(is_charged: bool) -> void:
 					var runner_sliding: bool = collider.is_sliding if "is_sliding" in collider else false
 					if runner_sliding and not is_charged and head.rotation.x > deg_to_rad(-12.0):
 						# Evaded! Low slide slipped underneath high standing tag!
+						GameManager.show_combat_banner("🏃 SLID UNDER TAG!", Color(0.3, 1.0, 0.5))
+						AudioManager.play_juke_whoosh()
 						continue
 					
 					var target_name: String = collider.player_name if "player_name" in collider else collider.bot_name if "bot_name" in collider else "Runner"

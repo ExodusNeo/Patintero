@@ -11,6 +11,7 @@ signal match_state_changed(new_state: MatchState)
 signal point_event_triggered(team_name: String, points: int, reason: String)
 signal halftime_reached(round_num: int)
 signal match_completed(winner_team: String, r_score: int, d_score: int)
+signal combat_banner_triggered(text: String, color: Color)
 
 var current_state: MatchState = MatchState.PLAYING
 var runner_score: int = 0
@@ -104,3 +105,6 @@ func _on_network_player_foul(player_name: String, _reason: String) -> void:
 
 func restart_current_match() -> void:
 	start_match()
+
+func show_combat_banner(text: String, color: Color = Color(1.0, 0.85, 0.2)) -> void:
+	combat_banner_triggered.emit(text, color)
