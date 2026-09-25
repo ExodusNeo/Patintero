@@ -27,12 +27,12 @@ const BOB_AMP: float = 0.04
 var bob_time: float = 0.0
 
 # Court Bounds & Line Positions
-const COURT_HALF_WIDTH: float = 3.8 # X axis: -3.8 to +3.8
+const COURT_HALF_WIDTH: float = 5.3 # X axis: -5.3 to +5.3
 const LINE_Z_POSITIONS: Dictionary = {
 	NetworkManager.Role.PATOTOT: 0.0,
-	NetworkManager.Role.LINE_GUARD_1: 4.0,
-	NetworkManager.Role.LINE_GUARD_2: 8.0,
-	NetworkManager.Role.LINE_GUARD_BACK: 12.0
+	NetworkManager.Role.LINE_GUARD_1: 5.0,
+	NetworkManager.Role.LINE_GUARD_2: 10.0,
+	NetworkManager.Role.LINE_GUARD_BACK: 15.0
 }
 
 # Player State
@@ -125,20 +125,20 @@ func _spawn_at_role_position() -> void:
 	match role:
 		NetworkManager.Role.RUNNER:
 			# Start outside entrance line, facing into court (+Z)
-			global_position = Vector3(0, 0.9, -3.0)
+			global_position = Vector3(0, 0.9, -3.5)
 			rotation.y = deg_to_rad(180)
 		NetworkManager.Role.PATOTOT:
 			# Front line, facing runners outside (-Z)
 			global_position = Vector3(0, 0.9, 0.0)
 			rotation.y = 0.0
 		NetworkManager.Role.LINE_GUARD_1:
-			global_position = Vector3(0, 0.9, 4.0)
+			global_position = Vector3(0, 0.9, 5.0)
 			rotation.y = 0.0
 		NetworkManager.Role.LINE_GUARD_2:
-			global_position = Vector3(0, 0.9, 8.0)
+			global_position = Vector3(0, 0.9, 10.0)
 			rotation.y = 0.0
 		NetworkManager.Role.LINE_GUARD_BACK:
-			global_position = Vector3(0, 0.9, 12.0)
+			global_position = Vector3(0, 0.9, 15.0)
 			rotation.y = 0.0
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -407,11 +407,11 @@ func _physics_patotot(delta: float) -> void:
 		var slide_dir: float = _get_line_slide_direction(Vector3.BACK)
 		velocity.z = slide_dir * cur_guard_speed
 		
-		if (global_position.z <= 0.0 and velocity.z < 0) or (global_position.z >= 12.0 and velocity.z > 0):
+		if (global_position.z <= 0.0 and velocity.z < 0) or (global_position.z >= 15.0 and velocity.z > 0):
 			velocity.z = 0
 	else:
 		camera.fov = lerp(camera.fov, 85.0, 8.0 * delta)
-		# Locked to Front Line (Z = 0, moving along World X axis from -3.8 to +3.8)
+		# Locked to Front Line (Z = 0, moving along World X axis from -COURT_HALF_WIDTH to +COURT_HALF_WIDTH)
 		global_position.z = move_toward(global_position.z, 0.0, 0.2)
 		velocity.z = 0
 		
@@ -423,11 +423,11 @@ func _physics_patotot(delta: float) -> void:
 
 func _toggle_patotot_axis() -> void:
 	if not is_patotot_on_spine:
-		if abs(global_position.x) <= 1.5:
+		if abs(global_position.x) <= 2.0:
 			is_patotot_on_spine = true
 			global_position.x = 0.0
 	else:
-		if global_position.z <= 2.0:
+		if global_position.z <= 2.5:
 			is_patotot_on_spine = false
 			global_position.z = 0.0
 
@@ -450,14 +450,20 @@ func _handle_camera_bob_and_lean(delta: float) -> void:
 		head.position.y = move_toward(head.position.y, HEAD_BASE_Y, delta * 0.5)
 		head.position.x = move_toward(head.position.x, 0.0, delta * 0.5)
 	
-	# Camera Lean (Q/E) for guards to peek corners (Runners use Q/E for lateral jukes)
+	# Camera Roll / Lean handling:
+	# - Defenders lean with Q/E to peek down lines
+	# - Runners lean slightly during slides, and smoothly restore to 0 after jukes!
+	var target_roll: float = 0.0
 	if role != NetworkManager.Role.RUNNER:
-		var lean_target: float = 0.0
 		if Input.is_key_pressed(KEY_Q):
-			lean_target = deg_to_rad(6.0)
+			target_roll = deg_to_rad(6.0)
 		elif Input.is_key_pressed(KEY_E) and role != NetworkManager.Role.PATOTOT:
-			lean_target = deg_to_rad(-6.0)
-		camera.rotation.z = lerp_angle(camera.rotation.z, lean_target, 10.0 * delta)
+			target_roll = deg_to_rad(-6.0)
+	elif is_sliding:
+		target_roll = deg_to_rad(-6.0)
+	
+	# Smoothly return camera rotation.z to target_roll (prevents juke tilt from getting stuck!)
+	camera.rotation.z = lerp_angle(camera.rotation.z, target_roll, 8.0 * delta)
 
 # --- DEFENDER TAGGING (Quick Tag vs Charged Sweep) ---
 func _release_tag() -> void:
@@ -478,14 +484,14 @@ func _execute_tag(is_charged: bool) -> void:
 	if is_charged:
 		AudioManager.play_charged_swing()
 		if sphere:
-			sphere.radius = 0.85
-		tag_cast.target_position = Vector3(0, 0, -2.4)
+			sphere.radius = 0.65
+		tag_cast.target_position = Vector3(0, 0, -1.85)
 		_animate_charged_sweep()
 	else:
 		AudioManager.play_juke_whoosh()
 		if sphere:
-			sphere.radius = 0.5
-		tag_cast.target_position = Vector3(0, 0, -1.8)
+			sphere.radius = 0.38
+		tag_cast.target_position = Vector3(0, 0, -1.35)
 		_animate_quick_tag()
 	
 	# Shapecast collision check
@@ -520,8 +526,8 @@ func _execute_tag(is_charged: bool) -> void:
 	
 	# Restore standard shape after sweep
 	if sphere:
-		sphere.radius = 0.5
-	tag_cast.target_position = Vector3(0, 0, -1.8)
+		sphere.radius = 0.38
+	tag_cast.target_position = Vector3(0, 0, -1.35)
 
 func _animate_quick_tag() -> void:
 	var tween := create_tween().set_parallel(true)
@@ -565,7 +571,7 @@ func on_tagged() -> void:
 	if role == NetworkManager.Role.RUNNER:
 		if is_sliding:
 			_stop_slide()
-		global_position = Vector3(0, 0.9, -3.0)
+		global_position = Vector3(0, 0.9, -3.5)
 		velocity = Vector3.ZERO
 		stamina = 100.0
 		AudioManager.set_low_stamina_active(false, 0.0)

@@ -8,25 +8,25 @@ class_name BotPlayer
 @onready var reach_hand: Node3D = $ReachHand
 
 # Tunables (game-ai / godot-physics / human-reaction)
-const GUARD_TRACK_SPEED: float = 4.8
-const GUARD_PATROL_SPEED: float = 2.8
-const GUARD_ACCEL: float = 14.0
+const GUARD_TRACK_SPEED: float = 3.8
+const GUARD_PATROL_SPEED: float = 2.2
+const GUARD_ACCEL: float = 9.5
 const RUNNER_SPEED: float = 5.2
-const RUNNER_SPRINT_SPEED: float = 7.6
+const RUNNER_SPRINT_SPEED: float = 7.8
 const GRAVITY: float = 15.0
 
-# Lane Anchors: Box centers are at X = ±2.0. sidings are ±3.75m.
-const LANE_LEFT_X: float = -1.9
-const LANE_RIGHT_X: float = 1.9
-const COURT_SAFE_X_MIN: float = -2.7
-const COURT_SAFE_X_MAX: float = 2.7
-const COURT_HALF_WIDTH: float = 3.7
+# Lane Anchors: Box centers are at X = ±2.75m. Sidings are ±5.3m.
+const LANE_LEFT_X: float = -2.75
+const LANE_RIGHT_X: float = 2.75
+const COURT_SAFE_X_MIN: float = -3.8
+const COURT_SAFE_X_MAX: float = 3.8
+const COURT_HALF_WIDTH: float = 5.3
 
 const LINE_Z_POSITIONS: Dictionary = {
 	NetworkManager.Role.PATOTOT: 0.0,
-	NetworkManager.Role.LINE_GUARD_1: 4.0,
-	NetworkManager.Role.LINE_GUARD_2: 8.0,
-	NetworkManager.Role.LINE_GUARD_BACK: 12.0
+	NetworkManager.Role.LINE_GUARD_1: 5.0,
+	NetworkManager.Role.LINE_GUARD_2: 10.0,
+	NetworkManager.Role.LINE_GUARD_BACK: 15.0
 }
 
 @export var role: NetworkManager.Role = NetworkManager.Role.LINE_GUARD_1
@@ -94,19 +94,19 @@ func _spawn_at_role_position() -> void:
 		NetworkManager.Role.RUNNER:
 			# Start outside entrance line, facing into court (+Z)
 			var start_x: float = LANE_LEFT_X if randf() < 0.5 else LANE_RIGHT_X
-			global_position = Vector3(start_x, 0.9, -3.2)
+			global_position = Vector3(start_x, 0.9, -3.5)
 			rotation.y = deg_to_rad(180)
 		NetworkManager.Role.PATOTOT:
 			global_position = Vector3(0, 0.9, 0.0)
 			rotation.y = 0.0
 		NetworkManager.Role.LINE_GUARD_1:
-			global_position = Vector3(randf_range(-1.2, 1.2), 0.9, 4.0)
+			global_position = Vector3(randf_range(-2.0, 2.0), 0.9, 5.0)
 			rotation.y = 0.0
 		NetworkManager.Role.LINE_GUARD_2:
-			global_position = Vector3(randf_range(-1.2, 1.2), 0.9, 8.0)
+			global_position = Vector3(randf_range(-2.0, 2.0), 0.9, 10.0)
 			rotation.y = 0.0
 		NetworkManager.Role.LINE_GUARD_BACK:
-			global_position = Vector3(randf_range(-1.2, 1.2), 0.9, 12.0)
+			global_position = Vector3(randf_range(-2.0, 2.0), 0.9, 15.0)
 			rotation.y = 0.0
 
 func _physics_process(delta: float) -> void:
@@ -128,7 +128,7 @@ func on_tagged() -> void:
 	if role == NetworkManager.Role.RUNNER:
 		runner_state = RunnerState.STAGING
 		has_reached_back = false
-		global_position = Vector3(randf_range(-1.8, 1.8), 0.9, -3.2)
+		global_position = Vector3(randf_range(-2.5, 2.5), 0.9, -3.5)
 		velocity = Vector3.ZERO
 		post_turnaround_timer = 1.0 # 1 second recovery freeze
 		chosen_lane_x = LANE_LEFT_X if randf() < 0.5 else LANE_RIGHT_X
@@ -149,33 +149,36 @@ func _ai_line_guard_tick(delta: float) -> void:
 	# Human perception latency: sample runner position at realistic reaction intervals
 	guard_reaction_timer -= delta
 	if guard_reaction_timer <= 0.0:
-		guard_reaction_timer = randf_range(0.20, 0.28) # 200-280ms human latency
+		guard_reaction_timer = randf_range(0.30, 0.42) # 300-420ms human latency
 		if target_runner:
 			perceived_runner_x = target_runner.global_position.x
+			# If runner performs a high-speed lateral juke, bot gets faked out!
+			if abs(target_runner.velocity.x) > 4.5:
+				guard_reaction_timer += 0.35
 	
-	# Only track if runner is within active engagement range (2.5m)
-	if target_runner and abs(target_runner.global_position.z - target_z) < 2.5:
+	# Only track if runner is within active engagement range (2.2m)
+	if target_runner and abs(target_runner.global_position.z - target_z) < 2.2:
 		var dx: float = perceived_runner_x - global_position.x
 		var desired_vx: float = 0.0
-		if abs(dx) > 0.35:
+		if abs(dx) > 0.4:
 			desired_vx = sign(dx) * GUARD_TRACK_SPEED
 		velocity.x = move_toward(velocity.x, desired_vx, GUARD_ACCEL * delta)
 		
-		# Rotate smoothly to face the approaching runner
+		# Rotate smoothly to face approaching runner
 		var look_offset: Vector3 = target_runner.global_position - global_position
 		look_offset.y = 0.0
 		if look_offset.length() > 0.2:
-			rotation.y = lerp_angle(rotation.y, atan2(-look_offset.x, -look_offset.z), 8.0 * delta)
+			rotation.y = lerp_angle(rotation.y, atan2(-look_offset.x, -look_offset.z), 6.0 * delta)
 		
 		# Tag runner if in reach
 		var dist: float = global_position.distance_to(target_runner.global_position)
-		if dist < 1.6 and tag_cooldown <= 0.0:
+		if dist < 1.3 and tag_cooldown <= 0.0:
 			_attempt_tag()
 	else:
 		# PATROL: Gentle slide back and forth along line with smooth deceleration
-		if global_position.x >= COURT_HALF_WIDTH - 0.6:
+		if global_position.x >= COURT_HALF_WIDTH - 0.8:
 			patrol_dir = -1.0
-		elif global_position.x <= -COURT_HALF_WIDTH + 0.6:
+		elif global_position.x <= -COURT_HALF_WIDTH + 0.8:
 			patrol_dir = 1.0
 		var desired_vx: float = patrol_dir * GUARD_PATROL_SPEED
 		velocity.x = move_toward(velocity.x, desired_vx, GUARD_ACCEL * delta)
@@ -195,23 +198,25 @@ func _ai_patotot_tick(delta: float) -> void:
 	
 	guard_reaction_timer -= delta
 	if guard_reaction_timer <= 0.0:
-		guard_reaction_timer = randf_range(0.20, 0.28)
+		guard_reaction_timer = randf_range(0.30, 0.42)
 		if target_runner:
 			perceived_runner_x = target_runner.global_position.x
 			perceived_runner_z = target_runner.global_position.z
+			if abs(target_runner.velocity.x) > 4.5:
+				guard_reaction_timer += 0.35
 	
-	# Decision: switch to spine if a runner has penetrated deep into boxes (Z > 2.5)
-	if target_runner and target_runner.global_position.z > 2.5 and not is_patotot_on_spine:
+	# Decision: switch to spine if a runner has penetrated deep into boxes (Z > 3.0)
+	if target_runner and target_runner.global_position.z > 3.0 and not is_patotot_on_spine:
 		# Head toward center to switch to spine
-		if abs(global_position.x) > 0.25:
+		if abs(global_position.x) > 0.35:
 			velocity.x = move_toward(velocity.x, -sign(global_position.x) * GUARD_TRACK_SPEED, GUARD_ACCEL * delta)
 			velocity.z = 0.0
 		else:
 			is_patotot_on_spine = true
 			global_position.x = 0.0
-	elif (not target_runner or target_runner.global_position.z <= 1.5) and is_patotot_on_spine:
+	elif (not target_runner or target_runner.global_position.z <= 2.0) and is_patotot_on_spine:
 		# Return to front line
-		if global_position.z > 0.3:
+		if global_position.z > 0.4:
 			velocity.z = move_toward(velocity.z, -GUARD_TRACK_SPEED, GUARD_ACCEL * delta)
 			velocity.x = 0.0
 		else:
@@ -225,31 +230,31 @@ func _ai_patotot_tick(delta: float) -> void:
 		if target_runner:
 			var dz: float = perceived_runner_z - global_position.z
 			var desired_vz: float = 0.0
-			if abs(dz) > 0.35:
+			if abs(dz) > 0.4:
 				desired_vz = sign(dz) * GUARD_TRACK_SPEED
 			velocity.z = move_toward(velocity.z, desired_vz, GUARD_ACCEL * delta)
-			if global_position.distance_to(target_runner.global_position) < 1.6 and tag_cooldown <= 0.0:
+			if global_position.distance_to(target_runner.global_position) < 1.3 and tag_cooldown <= 0.0:
 				_attempt_tag()
 		else:
 			velocity.z = move_toward(velocity.z, 0.0, GUARD_ACCEL * delta)
-		if (global_position.z <= 0.0 and velocity.z < 0) or (global_position.z >= 12.0 and velocity.z > 0):
+		if (global_position.z <= 0.0 and velocity.z < 0) or (global_position.z >= 15.0 and velocity.z > 0):
 			velocity.z = 0.0
 	else:
 		# Guard Front Line (X axis)
 		global_position.z = move_toward(global_position.z, 0.0, 0.1)
 		velocity.z = 0.0
-		if target_runner and target_runner.global_position.z < 2.5:
+		if target_runner and target_runner.global_position.z < 3.0:
 			var dx: float = perceived_runner_x - global_position.x
 			var desired_vx: float = 0.0
-			if abs(dx) > 0.35:
+			if abs(dx) > 0.4:
 				desired_vx = sign(dx) * GUARD_TRACK_SPEED
 			velocity.x = move_toward(velocity.x, desired_vx, GUARD_ACCEL * delta)
-			if global_position.distance_to(target_runner.global_position) < 1.6 and tag_cooldown <= 0.0:
+			if global_position.distance_to(target_runner.global_position) < 1.3 and tag_cooldown <= 0.0:
 				_attempt_tag()
 		else:
-			if global_position.x >= COURT_HALF_WIDTH - 0.6:
+			if global_position.x >= COURT_HALF_WIDTH - 0.8:
 				patrol_dir = -1.0
-			elif global_position.x <= -COURT_HALF_WIDTH + 0.6:
+			elif global_position.x <= -COURT_HALF_WIDTH + 0.8:
 				patrol_dir = 1.0
 			var desired_vx: float = patrol_dir * GUARD_PATROL_SPEED
 			velocity.x = move_toward(velocity.x, desired_vx, GUARD_ACCEL * delta)
@@ -288,37 +293,37 @@ func _ai_runner_tick(delta: float) -> void:
 	var guard_role: int = -1
 	
 	if not has_reached_back:
-		# Outbound: Advancing from Entrance (Z=-3) to Back (Z=12)
+		# Outbound: Advancing from Entrance (Z=-3.5) to Back (Z=15)
 		if global_position.z < -0.3:
 			target_line_z = 0.0
 			guard_role = NetworkManager.Role.PATOTOT
-		elif global_position.z < 3.7:
-			target_line_z = 4.0
+		elif global_position.z < 4.7:
+			target_line_z = 5.0
 			guard_role = NetworkManager.Role.LINE_GUARD_1
-		elif global_position.z < 7.7:
-			target_line_z = 8.0
+		elif global_position.z < 9.7:
+			target_line_z = 10.0
 			guard_role = NetworkManager.Role.LINE_GUARD_2
-		elif global_position.z < 11.7:
-			target_line_z = 12.0
+		elif global_position.z < 14.7:
+			target_line_z = 15.0
 			guard_role = NetworkManager.Role.LINE_GUARD_BACK
 		else:
 			# Past all lines, run into back safe zone
-			target_line_z = 13.5
+			target_line_z = 17.5
 			guard_role = -1
 	else:
-		# Inbound: Returning from Back (Z=13) to Home (Z=-3)
-		if global_position.z > 8.3:
-			target_line_z = 8.0
+		# Inbound: Returning from Back (Z=17.5) to Home (Z=-3.5)
+		if global_position.z > 10.3:
+			target_line_z = 10.0
 			guard_role = NetworkManager.Role.LINE_GUARD_2
-		elif global_position.z > 4.3:
-			target_line_z = 4.0
+		elif global_position.z > 5.3:
+			target_line_z = 5.0
 			guard_role = NetworkManager.Role.LINE_GUARD_1
 		elif global_position.z > 0.3:
 			target_line_z = 0.0
 			guard_role = NetworkManager.Role.PATOTOT
 		else:
 			# Past Line 0, run into entrance home safe zone
-			target_line_z = -3.0
+			target_line_z = -3.5
 			guard_role = -1
 	
 	var z_dist_to_line: float = abs(global_position.z - target_line_z)
@@ -487,21 +492,22 @@ func _find_nearest_guard() -> Node3D:
 func _attempt_tag() -> void:
 	if tag_cooldown > 0.0 or is_tagging:
 		return
-	tag_cooldown = 0.5
+	tag_cooldown = 0.85 # Whiff recovery window gives runners time to break through
 	is_tagging = true
 	
 	# Lunge hand animation
 	var tween := create_tween()
 	reach_hand.visible = true
 	reach_hand.position = Vector3(0.2, 0.4, -0.3)
-	tween.tween_property(reach_hand, "position", Vector3(0.0, 0.5, -1.25), 0.14)
-	tween.tween_property(reach_hand, "position", Vector3(0.2, 0.4, -0.3), 0.14)
+	tween.tween_property(reach_hand, "position", Vector3(0.0, 0.5, -1.15), 0.13)
+	tween.tween_property(reach_hand, "position", Vector3(0.2, 0.4, -0.3), 0.15)
 	await tween.finished
 	reach_hand.visible = false
 	is_tagging = false
 	
 	# Tag check: Shapecast or close distance check
 	var tagged := false
+	tag_cast.target_position = Vector3(0, 0, -1.25)
 	tag_cast.force_shapecast_update()
 	if tag_cast.is_colliding():
 		for i in range(tag_cast.get_collision_count()):
@@ -510,7 +516,7 @@ func _attempt_tag() -> void:
 				var is_sliding: bool = c.is_sliding if "is_sliding" in c else false
 				if is_sliding:
 					var dist: float = global_position.distance_to(c.global_position)
-					if dist > 0.95:
+					if dist > 0.75:
 						continue # Evaded! Runner slid under standing tag
 				var runner_name: String = c.player_name if "player_name" in c else c.bot_name if "bot_name" in c else "Runner"
 				NetworkManager.trigger_tag(c.peer_id if "peer_id" in c else 0, peer_id, runner_name, player_name)
@@ -520,7 +526,7 @@ func _attempt_tag() -> void:
 	# Fallback distance reach tag
 	if not tagged and target_runner and is_instance_valid(target_runner):
 		var target_sliding: bool = target_runner.is_sliding if "is_sliding" in target_runner else false
-		var tag_range: float = 0.9 if target_sliding else 1.5
+		var tag_range: float = 0.65 if target_sliding else 1.25
 		if global_position.distance_to(target_runner.global_position) <= tag_range:
 			var runner_name: String = target_runner.player_name if "player_name" in target_runner else target_runner.bot_name if "bot_name" in target_runner else "Runner"
 			NetworkManager.trigger_tag(target_runner.peer_id if "peer_id" in target_runner else 0, peer_id, runner_name, player_name)

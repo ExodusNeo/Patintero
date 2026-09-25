@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://src/arena/court/court.gd" id="1_script"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
-size = Vector3(32, 1, 38)
+size = Vector3(40, 1, 46)
 
 [sub_resource type="StandardMaterial3D" id="Mat_asphalt"]
 albedo_color = Color(0.18, 0.2, 0.22, 1)
@@ -11,7 +11,7 @@ roughness = 0.95
 
 [sub_resource type="BoxMesh" id="BoxMesh_ground"]
 material = SubResource("Mat_asphalt")
-size = Vector3(32, 1, 38)
+size = Vector3(40, 1, 46)
 
 [sub_resource type="StandardMaterial3D" id="Mat_chalk_white"]
 albedo_color = Color(0.96, 0.96, 0.96, 1)
@@ -29,27 +29,27 @@ emission_energy_multiplier = 0.35
 
 [sub_resource type="BoxMesh" id="BoxMesh_horiz_line"]
 material = SubResource("Mat_chalk_white")
-size = Vector3(8.2, 0.03, 0.22)
+size = Vector3(11.4, 0.03, 0.22)
 
 [sub_resource type="BoxMesh" id="BoxMesh_vert_line"]
 material = SubResource("Mat_chalk_white")
-size = Vector3(0.22, 0.03, 12.2)
+size = Vector3(0.22, 0.03, 15.2)
 
 [sub_resource type="BoxMesh" id="BoxMesh_center_spine"]
 material = SubResource("Mat_chalk_yellow")
-size = Vector3(0.26, 0.04, 12.2)
+size = Vector3(0.26, 0.04, 15.2)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_back"]
-size = Vector3(12, 3, 4)
+size = Vector3(16, 3, 5)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_home"]
-size = Vector3(12, 3, 5)
+size = Vector3(16, 3, 5)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_oob"]
-size = Vector3(4, 3, 14)
+size = Vector3(5, 3, 20)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_quadrant"]
-size = Vector3(3.8, 3, 3.8)
+size = Vector3(5.2, 3, 4.8)
 
 [sub_resource type="StandardMaterial3D" id="Mat_curb"]
 albedo_color = Color(0.38, 0.4, 0.44, 1)
@@ -57,7 +57,7 @@ roughness = 0.85
 
 [sub_resource type="BoxMesh" id="BoxMesh_curb"]
 material = SubResource("Mat_curb")
-size = Vector3(0.6, 0.3, 26)
+size = Vector3(0.6, 0.3, 30)
 
 [sub_resource type="StandardMaterial3D" id="Mat_pole"]
 albedo_color = Color(0.25, 0.28, 0.32, 1)
@@ -90,7 +90,7 @@ outer_radius = 0.26
 script = ExtResource("1_script")
 
 [node name="Ground" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 7.5)
 collision_layer = 1
 collision_mask = 3
 
@@ -107,73 +107,73 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.015, 0)
 mesh = SubResource("BoxMesh_horiz_line")
 
 [node name="Line2_Mid1" type="MeshInstance3D" parent="ChalkLines"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.015, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.015, 5)
 mesh = SubResource("BoxMesh_horiz_line")
 
 [node name="Line3_Mid2" type="MeshInstance3D" parent="ChalkLines"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.015, 8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.015, 10)
 mesh = SubResource("BoxMesh_horiz_line")
 
 [node name="Line4_Back" type="MeshInstance3D" parent="ChalkLines"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.015, 12)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.015, 15)
 mesh = SubResource("BoxMesh_horiz_line")
 
 [node name="BoundaryLeft" type="MeshInstance3D" parent="ChalkLines"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.015, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 0.015, 7.5)
 mesh = SubResource("BoxMesh_vert_line")
 
 [node name="BoundaryRight" type="MeshInstance3D" parent="ChalkLines"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.015, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 0.015, 7.5)
 mesh = SubResource("BoxMesh_vert_line")
 
 [node name="CenterSpine_Patotot" type="MeshInstance3D" parent="ChalkLines"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 7.5)
 mesh = SubResource("BoxMesh_center_spine")
 
 [node name="Curbs" type="Node3D" parent="."]
 
 [node name="CurbLeft" type="MeshInstance3D" parent="Curbs"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 0.12, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.8, 0.12, 7.5)
 mesh = SubResource("BoxMesh_curb")
 
 [node name="CurbRight" type="MeshInstance3D" parent="Curbs"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 0.12, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.8, 0.12, 7.5)
 mesh = SubResource("BoxMesh_curb")
 
 [node name="BoxNumbers" type="Node3D" parent="."]
 
 [node name="Label_Box1" type="Label3D" parent="BoxNumbers"]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -2, 0.02, 2)
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -2.75, 0.02, 2.5)
 modulate = Color(0.8, 0.85, 0.9, 0.6)
 text = "1"
 font_size = 72
 
 [node name="Label_Box2" type="Label3D" parent="BoxNumbers"]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 2, 0.02, 2)
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 2.75, 0.02, 2.5)
 modulate = Color(0.8, 0.85, 0.9, 0.6)
 text = "2"
 font_size = 72
 
 [node name="Label_Box3" type="Label3D" parent="BoxNumbers"]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -2, 0.02, 6)
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -2.75, 0.02, 7.5)
 modulate = Color(0.8, 0.85, 0.9, 0.6)
 text = "3"
 font_size = 72
 
 [node name="Label_Box4" type="Label3D" parent="BoxNumbers"]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 2, 0.02, 6)
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 2.75, 0.02, 7.5)
 modulate = Color(0.8, 0.85, 0.9, 0.6)
 text = "4"
 font_size = 72
 
 [node name="Label_Box5" type="Label3D" parent="BoxNumbers"]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -2, 0.02, 10)
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -2.75, 0.02, 12.5)
 modulate = Color(0.8, 0.85, 0.9, 0.6)
 text = "5"
 font_size = 72
 
 [node name="Label_Box6" type="Label3D" parent="BoxNumbers"]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 2, 0.02, 10)
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 2.75, 0.02, 12.5)
 modulate = Color(0.8, 0.85, 0.9, 0.6)
 text = "6"
 font_size = 72
@@ -181,7 +181,7 @@ font_size = 72
 [node name="StreetLights" type="Node3D" parent="."]
 
 [node name="Lamp1" type="Node3D" parent="StreetLights"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 0, 1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.8, 0, 1.5)
 
 [node name="Pole" type="MeshInstance3D" parent="StreetLights/Lamp1"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.75, 0)
@@ -191,10 +191,10 @@ mesh = SubResource("CylinderMesh_pole")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 5.2, 0)
 light_color = Color(1, 0.88, 0.7, 1)
 light_energy = 2.0
-omni_range = 14.0
+omni_range = 16.0
 
 [node name="Lamp2" type="Node3D" parent="StreetLights"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 0, 11)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.8, 0, 13.5)
 
 [node name="Pole" type="MeshInstance3D" parent="StreetLights/Lamp2"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.75, 0)
@@ -204,10 +204,10 @@ mesh = SubResource("CylinderMesh_pole")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 5.2, 0)
 light_color = Color(1, 0.88, 0.7, 1)
 light_energy = 2.0
-omni_range = 14.0
+omni_range = 16.0
 
 [node name="BasketballGoal" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 15.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 19.5)
 
 [node name="Pole" type="MeshInstance3D" parent="BasketballGoal"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
@@ -224,7 +224,7 @@ mesh = SubResource("TorusMesh_rim")
 [node name="Boxes" type="Node3D" parent="."]
 
 [node name="Box1" type="Area3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1.5, 2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.75, 1.5, 2.5)
 collision_layer = 4
 collision_mask = 2
 
@@ -232,7 +232,7 @@ collision_mask = 2
 shape = SubResource("BoxShape3D_quadrant")
 
 [node name="Box2" type="Area3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1.5, 2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.75, 1.5, 2.5)
 collision_layer = 4
 collision_mask = 2
 
@@ -240,7 +240,7 @@ collision_mask = 2
 shape = SubResource("BoxShape3D_quadrant")
 
 [node name="Box3" type="Area3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1.5, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.75, 1.5, 7.5)
 collision_layer = 4
 collision_mask = 2
 
@@ -248,7 +248,7 @@ collision_mask = 2
 shape = SubResource("BoxShape3D_quadrant")
 
 [node name="Box4" type="Area3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1.5, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.75, 1.5, 7.5)
 collision_layer = 4
 collision_mask = 2
 
@@ -256,7 +256,7 @@ collision_mask = 2
 shape = SubResource("BoxShape3D_quadrant")
 
 [node name="Box5" type="Area3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1.5, 10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.75, 1.5, 12.5)
 collision_layer = 4
 collision_mask = 2
 
@@ -264,7 +264,7 @@ collision_mask = 2
 shape = SubResource("BoxShape3D_quadrant")
 
 [node name="Box6" type="Area3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1.5, 10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.75, 1.5, 12.5)
 collision_layer = 4
 collision_mask = 2
 
@@ -272,7 +272,7 @@ collision_mask = 2
 shape = SubResource("BoxShape3D_quadrant")
 
 [node name="BackZone" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 13.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 17.5)
 collision_layer = 4
 collision_mask = 2
 
@@ -288,7 +288,7 @@ collision_mask = 2
 shape = SubResource("BoxShape3D_home")
 
 [node name="OutOfBoundsLeft" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 1.5, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.0, 1.5, 7.5)
 collision_layer = 4
 collision_mask = 2
 
@@ -296,7 +296,7 @@ collision_mask = 2
 shape = SubResource("BoxShape3D_oob")
 
 [node name="OutOfBoundsRight" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 1.5, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.0, 1.5, 7.5)
 collision_layer = 4
 collision_mask = 2
 

@@ -256,7 +256,7 @@ func _update_runner_zone_text() -> void:
 	if z < 0.0:
 		zone_label.text = "ZONE: ENTRANCE (SAFE)"
 		zone_label.modulate = Color(0.4, 0.9, 1.0)
-	elif z > 12.0:
+	elif z > 15.0:
 		zone_label.text = "ZONE: BACK LINE (HALFWAY REACHED!)"
 		zone_label.modulate = Color(1.0, 0.85, 0.2)
 	elif current_box_num > 0:
