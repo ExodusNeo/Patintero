@@ -90,20 +90,20 @@ func _spawn_at_role_position() -> void:
 	match role:
 		NetworkManager.Role.RUNNER:
 			# Start outside entrance line, facing into court (+Z)
-			global_position = Vector3(0, 1.0, -3.0)
+			global_position = Vector3(0, 0.9, -3.0)
 			rotation.y = deg_to_rad(180)
 		NetworkManager.Role.PATOTOT:
 			# Front line, facing runners outside (-Z)
-			global_position = Vector3(0, 1.0, 0.0)
+			global_position = Vector3(0, 0.9, 0.0)
 			rotation.y = 0.0
 		NetworkManager.Role.LINE_GUARD_1:
-			global_position = Vector3(0, 1.0, 4.0)
+			global_position = Vector3(0, 0.9, 4.0)
 			rotation.y = 0.0
 		NetworkManager.Role.LINE_GUARD_2:
-			global_position = Vector3(0, 1.0, 8.0)
+			global_position = Vector3(0, 0.9, 8.0)
 			rotation.y = 0.0
 		NetworkManager.Role.LINE_GUARD_BACK:
-			global_position = Vector3(0, 1.0, 12.0)
+			global_position = Vector3(0, 0.9, 12.0)
 			rotation.y = 0.0
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -201,12 +201,16 @@ func _physics_runner(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0, speed)
 
 # --- LINE GUARD PHYSICS (Locked to assigned horizontal line) ---
-func _physics_line_guard(_delta: float) -> void:
+func _physics_line_guard(delta: float) -> void:
 	var target_z: float = LINE_Z_POSITIONS.get(role, 0.0)
 	# Snap / constrain Z position strictly to the chalk line
 	global_position.z = move_toward(global_position.z, target_z, 0.1)
 	velocity.z = 0
-	velocity.y = 0
+	
+	if not is_on_floor():
+		velocity.y -= GRAVITY * delta
+	else:
+		velocity.y = 0.0
 	
 	var slide_dir := _get_line_slide_direction(Vector3.RIGHT)
 	velocity.x = slide_dir * GUARD_SLIDE_SPEED
@@ -215,8 +219,12 @@ func _physics_line_guard(_delta: float) -> void:
 		velocity.x = 0
 
 # --- PATOTOT PHYSICS (Dual Axis: Front Line OR Center Spine) ---
-func _physics_patotot(_delta: float) -> void:
-	velocity.y = 0
+func _physics_patotot(delta: float) -> void:
+	if not is_on_floor():
+		velocity.y -= GRAVITY * delta
+	else:
+		velocity.y = 0.0
+	
 	if is_patotot_on_spine:
 		# Locked to Center Spine (X = 0, moving along World Z axis from 0 to 12)
 		global_position.x = move_toward(global_position.x, 0.0, 0.2)
@@ -292,7 +300,7 @@ func _attempt_tag() -> void:
 				if collider.role == NetworkManager.Role.RUNNER:
 					# Tag verified!
 					var target_name: String = collider.player_name if "player_name" in collider else collider.bot_name if "bot_name" in collider else "Runner"
-					NetworkManager.report_tag.rpc(collider.peer_id if "peer_id" in collider else 0, peer_id, target_name, player_name)
+					NetworkManager.trigger_tag(collider.peer_id if "peer_id" in collider else 0, peer_id, target_name, player_name)
 					break
 
 func _animate_tag_reach() -> void:

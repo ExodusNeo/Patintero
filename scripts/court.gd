@@ -56,4 +56,4 @@ func _on_out_of_bounds_entered(body: Node3D) -> void:
 			var pid := _get_runner_id(body)
 			out_of_bounds_triggered.emit(pid)
 			var p_name: String = body.player_name if "player_name" in body else "Runner"
-			NetworkManager.report_foul.rpc(pid, "%s Stepped Out of Bounds!" % p_name)
+			NetworkManager.trigger_foul(pid, "%s Stepped Out of Bounds!" % p_name)

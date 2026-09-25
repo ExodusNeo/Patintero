@@ -160,6 +160,18 @@ func report_foul(player_id: int, reason: String) -> void:
 	var p_name: String = players.get(player_id, {}).get("name", "Player")
 	player_foul.emit(p_name, reason)
 
+func trigger_tag(runner_id: int, tagger_id: int, runner_fallback: String = "Runner", tagger_fallback: String = "Guard") -> void:
+	if multiplayer.has_multiplayer_peer():
+		report_tag.rpc(runner_id, tagger_id, runner_fallback, tagger_fallback)
+	else:
+		report_tag(runner_id, tagger_id, runner_fallback, tagger_fallback)
+
+func trigger_foul(player_id: int, reason: String) -> void:
+	if multiplayer.has_multiplayer_peer():
+		report_foul.rpc(player_id, reason)
+	else:
+		report_foul(player_id, reason)
+
 func get_role_name(role: Role) -> String:
 	match role:
 		Role.RUNNER:
