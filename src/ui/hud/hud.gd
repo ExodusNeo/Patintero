@@ -181,13 +181,14 @@ func _process_runner_hud() -> void:
 		stamina_bar.modulate = Color(1.0, 1.0, 1.0)
 	
 	# Slide status
+	var slide_cost: float = local_player.get("SLIDE_STAMINA_COST") if local_player.get("SLIDE_STAMINA_COST") != null else 20.0
 	if local_player.is_sliding:
 		ability1_label.text = "⚡ SLIDING..."
 		ability1_label.modulate = Color(0.3, 1.0, 0.5)
 	elif local_player.slide_cooldown > 0.0:
 		ability1_label.text = "⏳ SLIDE CD: %.1fs" % local_player.slide_cooldown
 		ability1_label.modulate = Color(0.7, 0.7, 0.7)
-	elif local_player.stamina < local_player.SLIDE_STAMINA_COST:
+	elif local_player.stamina < slide_cost:
 		ability1_label.text = "❌ SLIDE: LOW STAMINA"
 		ability1_label.modulate = Color(0.8, 0.4, 0.4)
 	else:
@@ -195,10 +196,11 @@ func _process_runner_hud() -> void:
 		ability1_label.modulate = Color(0.4, 1.0, 0.5)
 	
 	# Juke status
+	var juke_cost: float = local_player.get("JUKE_STAMINA_COST") if local_player.get("JUKE_STAMINA_COST") != null else 15.0
 	if local_player.juke_cooldown > 0.0:
 		ability2_label.text = "⏳ JUKE CD: %.1fs" % local_player.juke_cooldown
 		ability2_label.modulate = Color(0.7, 0.7, 0.7)
-	elif local_player.stamina < local_player.JUKE_STAMINA_COST:
+	elif local_player.stamina < juke_cost:
 		ability2_label.text = "❌ JUKE: LOW STAMINA"
 		ability2_label.modulate = Color(0.8, 0.4, 0.4)
 	else:
@@ -241,7 +243,8 @@ func _update_tag_hud_ability(target_label: Label) -> void:
 		target_label.modulate = Color(1.0, 0.2, 0.2)
 		dot.color = Color(1.0, 0.2, 0.2, 0.9)
 	elif local_player.is_charging_tag:
-		var pct: int = int(clamp(local_player.tag_charge_time / local_player.MAX_TAG_CHARGE, 0.0, 1.0) * 100.0)
+		var max_charge: float = local_player.get("MAX_TAG_CHARGE") if local_player.get("MAX_TAG_CHARGE") != null else 0.55
+		var pct: int = int(clamp(local_player.tag_charge_time / max_charge, 0.0, 1.0) * 100.0)
 		target_label.text = "🔥 CHARGING SWEEP: %d%%" % pct
 		target_label.modulate = Color(1.0, 0.5, 0.1)
 		dot.color = Color(1.0, 0.5, 0.1, 1.0)

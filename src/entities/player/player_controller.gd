@@ -53,6 +53,10 @@ var spine_burst_timer: float:
 	get: return skills_comp.spine_burst_timer if skills_comp else 0.0
 var spine_burst_cooldown: float:
 	get: return skills_comp.spine_burst_cooldown if skills_comp else 0.0
+var SLIDE_STAMINA_COST: float:
+	get: return PlayerSkillsScript.SLIDE_STAMINA_COST
+var JUKE_STAMINA_COST: float:
+	get: return PlayerSkillsScript.JUKE_STAMINA_COST
 
 # Delegated combat properties for HUD / systems
 var is_charging_tag: bool:
