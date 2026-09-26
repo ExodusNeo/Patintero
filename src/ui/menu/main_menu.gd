@@ -14,6 +14,8 @@ extends Control
 @onready var volume_slider: HSlider = %VolumeSlider
 @onready var volume_label: Label = %VolumeLabel
 @onready var vu_meter: ProgressBar = %VUMeter
+@onready var settings_button: Button = %SettingsButton
+@onready var settings_modal: CanvasLayer = %SettingsModal
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -24,6 +26,7 @@ func _ready() -> void:
 	join_button.pressed.connect(_on_join_pressed)
 	solo_button.pressed.connect(_on_solo_pressed)
 	start_match_button.pressed.connect(_on_start_match_pressed)
+	settings_button.pressed.connect(_on_settings_pressed)
 	
 	NetworkManager.players_updated.connect(_update_lobby_ui)
 	lobby_panel.visible = false
@@ -118,3 +121,6 @@ func _update_lobby_ui() -> void:
 		var role_str: String = NetworkManager.get_role_name(info.get("role", NetworkManager.Role.RUNNER))
 		text += "• %s - %s (ID: %d)\n" % [info.get("name", "Player"), role_str, id]
 	player_list_label.text = text
+
+func _on_settings_pressed() -> void:
+	settings_modal.open_as_dialog()

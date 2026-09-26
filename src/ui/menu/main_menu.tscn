@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/ui/menu/main_menu.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://src/ui/menu/pause_menu.tscn" id="2_pause"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -182,6 +183,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Join Room"
 
+[node name="SettingsButton" type="Button" parent="CenterContainer/VBox/FormCard/Margin/FormVBox/ButtonsBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "⚙️ Settings & Controls"
+
 [node name="LobbyPanel" type="PanelContainer" parent="CenterContainer/VBox"]
 unique_name_in_owner = true
 visible = false
@@ -215,3 +222,6 @@ text = "★ START MATCH ★"
 unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
+
+[node name="SettingsModal" parent="." instance=ExtResource("2_pause")]
+unique_name_in_owner = true

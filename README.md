@@ -120,7 +120,8 @@ Patintero/
 │   ├── core/
 │   │   ├── network_manager.gd        # Autoload: ENet server/client room connection
 │   │   ├── audio_manager.gd          # Autoload: Procedural audio synthesis & SFX
-│   │   └── game_manager.gd           # Autoload: Match state, timers & rules
+│   │   ├── game_manager.gd           # Autoload: Match state, timers & rules
+│   │   └── settings_manager.gd       # Autoload: Settings persistence (sensitivity, FOV, video)
 │   ├── entities/
 │   │   ├── player/
 │   │   │   ├── player.tscn           # CharacterBody3D node tree
@@ -146,7 +147,9 @@ Patintero/
 │       │   └── hud.gd                # UI updates & screen flashes
 │       └── menu/
 │           ├── main_menu.tscn        # Matchmaking, role select & solo test
-│           └── main_menu.gd          # Menu controller
+│           ├── main_menu.gd          # Menu controller
+│           ├── pause_menu.tscn       # In-game pause & settings dialog
+│           └── pause_menu.gd         # Pause controller & options handler
 └── addons/                           # Engine plugins (godot-ai MCP, etc.)
 ```
 

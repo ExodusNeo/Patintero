@@ -27,15 +27,11 @@ func handle_input(event: InputEvent) -> void:
 		return
 	
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		player.rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
-		head.rotate_x(-event.relative.y * MOUSE_SENSITIVITY)
+		var sens := MOUSE_SENSITIVITY * (SettingsManager.mouse_sensitivity if has_node("/root/SettingsManager") else 1.0)
+		var invert_y := -1.0 if (has_node("/root/SettingsManager") and SettingsManager.invert_y) else 1.0
+		player.rotate_y(-event.relative.x * sens)
+		head.rotate_x(-event.relative.y * sens * invert_y)
 		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-80), deg_to_rad(80))
-	
-	if event.is_action_pressed("ui_cancel"):
-		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		else:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func update_look_and_dynamics(delta: float) -> void:
 	if not player.is_multiplayer_authority():
@@ -49,10 +45,12 @@ func update_look_and_dynamics(delta: float) -> void:
 func _handle_joypad_look(delta: float) -> void:
 	var look_x := Input.get_joy_axis(0, JOY_AXIS_RIGHT_X)
 	var look_y := Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y)
+	var joy_sens := JOYPAD_SENSITIVITY * (SettingsManager.joypad_sensitivity if has_node("/root/SettingsManager") else 1.0)
+	var invert_y := -1.0 if (has_node("/root/SettingsManager") and SettingsManager.invert_y) else 1.0
 	if abs(look_x) > 0.12:
-		player.rotate_y(-look_x * JOYPAD_SENSITIVITY * delta)
+		player.rotate_y(-look_x * joy_sens * delta)
 	if abs(look_y) > 0.12:
-		head.rotate_x(-look_y * JOYPAD_SENSITIVITY * delta)
+		head.rotate_x(-look_y * joy_sens * invert_y * delta)
 		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-80), deg_to_rad(80))
 
 func _handle_head_bob(delta: float) -> void:
@@ -85,11 +83,12 @@ func _handle_camera_tilt(delta: float) -> void:
 	camera.rotation.z = lerp_angle(camera.rotation.z, target_cam_tilt, 10.0 * delta)
 
 func _handle_dynamic_fov(delta: float) -> void:
-	var target_fov: float = 85.0
+	var base_fov: float = SettingsManager.base_fov if has_node("/root/SettingsManager") else 85.0
+	var target_fov: float = base_fov
 	if player.is_patotot_on_spine and player.spine_burst_timer > 0.0:
-		target_fov = 96.0
+		target_fov = base_fov + 11.0
 	elif player.is_sprinting and player.velocity.length() > 2.0:
-		target_fov = 94.0
+		target_fov = base_fov + 9.0
 	
 	camera.fov = lerp(camera.fov, target_fov, 8.0 * delta)
 

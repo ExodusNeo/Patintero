@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://src/arena/world/world.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://src/arena/court/court.tscn" id="2_court"]
 [ext_resource type="PackedScene" path="res://src/ui/hud/hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://src/ui/menu/pause_menu.tscn" id="4_pause"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.24, 0.44, 0.76, 1)
@@ -48,3 +49,5 @@ _spawnable_scenes = PackedStringArray("res://src/entities/player/player.tscn")
 spawn_path = NodePath("../Players")
 
 [node name="HUD" parent="." instance=ExtResource("3_hud")]
+ 
+[node name="PauseMenu" parent="." instance=ExtResource("4_pause")]

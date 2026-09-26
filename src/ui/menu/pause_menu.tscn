@@ -1,0 +1,267 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/ui/menu/pause_menu.gd" id="1_pause"]
+
+[node name="PauseMenu" type="CanvasLayer"]
+process_mode = 3
+layer = 100
+visible = false
+script = ExtResource("1_pause")
+
+[node name="RootControl" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Backdrop" type="ColorRect" parent="RootControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.03, 0.05, 0.82)
+
+[node name="Center" type="CenterContainer" parent="RootControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanel" type="PanelContainer" parent="RootControl/Center"]
+custom_minimum_size = Vector2(580, 0)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="RootControl/Center/MainPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="RootControl/Center/MainPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="RootControl/Center/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.35, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 22
+text = "⏸️ PATINTERO 3D - PAUSED"
+horizontal_alignment = 1
+
+[node name="Separator1" type="HSeparator" parent="RootControl/Center/MainPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="SettingsHeader" type="Label" parent="RootControl/Center/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "⚙️ CONTROLS & DISPLAY SETTINGS"
+
+[node name="MouseSensRow" type="HBoxContainer" parent="RootControl/Center/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="RootControl/Center/MainPanel/Margin/VBox/MouseSensRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Mouse Sensitivity:"
+
+[node name="MouseSensSlider" type="HSlider" parent="RootControl/Center/MainPanel/Margin/VBox/MouseSensRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 0.2
+max_value = 3.0
+step = 0.05
+value = 1.0
+
+[node name="MouseSensVal" type="Label" parent="RootControl/Center/MainPanel/Margin/VBox/MouseSensRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(45, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "100%"
+horizontal_alignment = 2
+
+[node name="JoySensRow" type="HBoxContainer" parent="RootControl/Center/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="RootControl/Center/MainPanel/Margin/VBox/JoySensRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Controller Sensitivity:"
+
+[node name="JoySensSlider" type="HSlider" parent="RootControl/Center/MainPanel/Margin/VBox/JoySensRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 0.2
+max_value = 3.0
+step = 0.05
+value = 1.0
+
+[node name="JoySensVal" type="Label" parent="RootControl/Center/MainPanel/Margin/VBox/JoySensRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(45, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "100%"
+horizontal_alignment = 2
+
+[node name="InvertYRow" type="HBoxContainer" parent="RootControl/Center/MainPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="InvertYCheck" type="CheckBox" parent="RootControl/Center/MainPanel/Margin/VBox/InvertYRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Invert Vertical Look (Y-Axis)"
+
+[node name="FovRow" type="HBoxContainer" parent="RootControl/Center/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="RootControl/Center/MainPanel/Margin/VBox/FovRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Field of View (FOV):"
+
+[node name="FovSlider" type="HSlider" parent="RootControl/Center/MainPanel/Margin/VBox/FovRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 70.0
+max_value = 110.0
+step = 1.0
+value = 85.0
+
+[node name="FovVal" type="Label" parent="RootControl/Center/MainPanel/Margin/VBox/FovRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(45, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "85°"
+horizontal_alignment = 2
+
+[node name="AudioRow" type="HBoxContainer" parent="RootControl/Center/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="RootControl/Center/MainPanel/Margin/VBox/AudioRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Master Audio Volume:"
+
+[node name="VolumeSlider" type="HSlider" parent="RootControl/Center/MainPanel/Margin/VBox/AudioRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+value = 80.0
+
+[node name="VolumeVal" type="Label" parent="RootControl/Center/MainPanel/Margin/VBox/AudioRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "80%"
+horizontal_alignment = 2
+
+[node name="MuteBtn" type="Button" parent="RootControl/Center/MainPanel/Margin/VBox/AudioRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 28)
+layout_mode = 2
+text = "🔊"
+
+[node name="VuMeter" type="ProgressBar" parent="RootControl/Center/MainPanel/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+mouse_filter = 2
+value = 20.0
+show_percentage = false
+
+[node name="DisplayRow" type="HBoxContainer" parent="RootControl/Center/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="RootControl/Center/MainPanel/Margin/VBox/DisplayRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Window Display Mode:"
+
+[node name="DisplayDropdown" type="OptionButton" parent="RootControl/Center/MainPanel/Margin/VBox/DisplayRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ControlsPanel" type="PanelContainer" parent="RootControl/Center/MainPanel/Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="RootControl/Center/MainPanel/Margin/VBox/ControlsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="ControlsText" type="RichTextLabel" parent="RootControl/Center/MainPanel/Margin/VBox/ControlsPanel/Margin"]
+layout_mode = 2
+fit_content = true
+bbcode_enabled = true
+text = "[b]🏃 RUNNER (Tawid):[/b] [color=#55ffff]WASD[/color] Move | [color=#55ffff]Shift[/color] Sprint | [color=#55ffff]Ctrl/C[/color] Sprint Slide | [color=#55ffff]Q/E[/color] Lateral Juke
+[b]🛡️ DEFENDER (Line Guard):[/b] [color=#ffff55]A/D[/color] Slide on Line | [color=#ffff55]Q/E[/color] Lean Reach | [color=#ffff55]L-Click/F[/color] Tag Lunge / Sweep
+[b]⭐ PATOTOT (Captain):[/b] [color=#ffaa55]A/D[/color] Front Line | [color=#ffaa55]W/S[/color] Center Spine | [color=#ffaa55]E[/color] Switch Axis | [color=#ffaa55]Shift[/color] Spine Burst"
+
+[node name="Separator2" type="HSeparator" parent="RootControl/Center/MainPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="RootControl/Center/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ResumeButton" type="Button" parent="RootControl/Center/MainPanel/Margin/VBox/ButtonRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.4, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 15
+text = "▶ RESUME"
+
+[node name="ToggleControlsBtn" type="Button" parent="RootControl/Center/MainPanel/Margin/VBox/ButtonRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "📖 SHOW CONTROLS"
+
+[node name="QuitButton" type="Button" parent="RootControl/Center/MainPanel/Margin/VBox/ButtonRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 13
+text = "🚪 QUIT TO MENU"
