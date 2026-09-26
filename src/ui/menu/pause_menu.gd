@@ -64,11 +64,18 @@ func pause_game() -> void:
 	_load_current_values()
 	resume_btn.grab_focus()
 
+func _get_settings() -> Node:
+	if is_inside_tree() and has_node("/root/SettingsManager"):
+		return get_node("/root/SettingsManager")
+	return null
+
 func resume_game() -> void:
 	is_paused = false
 	visible = false
 	controls_panel.visible = false
-	SettingsManager.save_settings()
+	var s: Node = _get_settings()
+	if s and s.has_method("save_settings"):
+		s.save_settings()
 	
 	if get_tree().current_scene and get_tree().current_scene.name == "World":
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -114,22 +121,26 @@ func _setup_settings_ui() -> void:
 	display_dropdown.item_selected.connect(_on_display_selected)
 
 func _load_current_values() -> void:
-	mouse_sens_slider.value = SettingsManager.mouse_sensitivity
-	mouse_sens_val.text = "%d%%" % int(SettingsManager.mouse_sensitivity * 100.0)
+	var s: Node = _get_settings()
+	var mouse_s: float = s.mouse_sensitivity if (s and "mouse_sensitivity" in s) else 1.0
+	mouse_sens_slider.value = mouse_s
+	mouse_sens_val.text = "%d%%" % int(mouse_s * 100.0)
 	
-	joy_sens_slider.value = SettingsManager.joypad_sensitivity
-	joy_sens_val.text = "%d%%" % int(SettingsManager.joypad_sensitivity * 100.0)
+	var joy_s: float = s.joypad_sensitivity if (s and "joypad_sensitivity" in s) else 1.0
+	joy_sens_slider.value = joy_s
+	joy_sens_val.text = "%d%%" % int(joy_s * 100.0)
 	
-	invert_y_check.button_pressed = SettingsManager.invert_y
+	invert_y_check.button_pressed = s.invert_y if (s and "invert_y" in s) else false
 	
-	fov_slider.value = SettingsManager.base_fov
-	fov_val.text = "%d°" % int(SettingsManager.base_fov)
+	var base_fov: float = s.base_fov if (s and "base_fov" in s) else 85.0
+	fov_slider.value = base_fov
+	fov_val.text = "%d°" % int(base_fov)
 	
 	volume_slider.value = AudioManager.master_volume * 100.0
 	volume_val.text = "%d%%" % int(volume_slider.value)
 	mute_btn.text = "🔇" if AudioManager.is_muted else "🔊"
 	
-	display_dropdown.selected = SettingsManager.display_mode
+	display_dropdown.selected = s.display_mode if (s and "display_mode" in s) else 0
 
 func _process(delta: float) -> void:
 	if visible:
@@ -137,32 +148,46 @@ func _process(delta: float) -> void:
 		vu_meter.value = lerp(vu_meter.value, peak * 100.0, 18.0 * delta)
 
 func _on_mouse_sens_changed(val: float) -> void:
-	SettingsManager.set_mouse_sensitivity(val)
+	var s: Node = _get_settings()
+	if s and s.has_method("set_mouse_sensitivity"):
+		s.set_mouse_sensitivity(val)
 	mouse_sens_val.text = "%d%%" % int(val * 100.0)
 
 func _on_joy_sens_changed(val: float) -> void:
-	SettingsManager.set_joypad_sensitivity(val)
+	var s: Node = _get_settings()
+	if s and s.has_method("set_joypad_sensitivity"):
+		s.set_joypad_sensitivity(val)
 	joy_sens_val.text = "%d%%" % int(val * 100.0)
 
 func _on_invert_y_toggled(enabled: bool) -> void:
-	SettingsManager.set_invert_y(enabled)
+	var s: Node = _get_settings()
+	if s and s.has_method("set_invert_y"):
+		s.set_invert_y(enabled)
 
 func _on_fov_changed(val: float) -> void:
-	SettingsManager.set_base_fov(val)
+	var s: Node = _get_settings()
+	if s and s.has_method("set_base_fov"):
+		s.set_base_fov(val)
 	fov_val.text = "%d°" % int(val)
 
 func _on_volume_changed(val: float) -> void:
 	AudioManager.set_master_volume(val / 100.0)
-	SettingsManager.master_volume = val / 100.0
+	var s: Node = _get_settings()
+	if s:
+		s.master_volume = val / 100.0
 	volume_val.text = "%d%%" % int(val)
 
 func _on_mute_pressed() -> void:
 	var muted := AudioManager.toggle_mute()
-	SettingsManager.is_muted = muted
+	var s: Node = _get_settings()
+	if s:
+		s.is_muted = muted
 	mute_btn.text = "🔇" if muted else "🔊"
 
 func _on_display_selected(index: int) -> void:
-	SettingsManager.set_display_mode(index)
+	var s: Node = _get_settings()
+	if s and s.has_method("set_display_mode"):
+		s.set_display_mode(index)
 
 func _toggle_controls_view() -> void:
 	controls_panel.visible = not controls_panel.visible

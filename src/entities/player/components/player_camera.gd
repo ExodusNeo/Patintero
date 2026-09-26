@@ -22,15 +22,22 @@ func setup(p: CharacterBody3D, h: Node3D, cam: Camera3D) -> void:
 	head = h
 	camera = cam
 
+func _get_settings() -> Node:
+	if player and player.is_inside_tree() and player.has_node("/root/SettingsManager"):
+		return player.get_node("/root/SettingsManager")
+	return null
+
 func handle_input(event: InputEvent) -> void:
 	if not player.is_multiplayer_authority():
 		return
 	
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		var sens := MOUSE_SENSITIVITY * (SettingsManager.mouse_sensitivity if has_node("/root/SettingsManager") else 1.0)
-		var invert_y := -1.0 if (has_node("/root/SettingsManager") and SettingsManager.invert_y) else 1.0
+		var settings: Node = _get_settings()
+		var mult: float = settings.mouse_sensitivity if (settings and "mouse_sensitivity" in settings) else 1.0
+		var sens: float = MOUSE_SENSITIVITY * mult
+		var invert: float = -1.0 if (settings and "invert_y" in settings and settings.invert_y) else 1.0
 		player.rotate_y(-event.relative.x * sens)
-		head.rotate_x(-event.relative.y * sens * invert_y)
+		head.rotate_x(-event.relative.y * sens * invert)
 		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-80), deg_to_rad(80))
 
 func update_look_and_dynamics(delta: float) -> void:
@@ -45,12 +52,14 @@ func update_look_and_dynamics(delta: float) -> void:
 func _handle_joypad_look(delta: float) -> void:
 	var look_x := Input.get_joy_axis(0, JOY_AXIS_RIGHT_X)
 	var look_y := Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y)
-	var joy_sens := JOYPAD_SENSITIVITY * (SettingsManager.joypad_sensitivity if has_node("/root/SettingsManager") else 1.0)
-	var invert_y := -1.0 if (has_node("/root/SettingsManager") and SettingsManager.invert_y) else 1.0
+	var settings: Node = _get_settings()
+	var joy_mult: float = settings.joypad_sensitivity if (settings and "joypad_sensitivity" in settings) else 1.0
+	var joy_sens: float = JOYPAD_SENSITIVITY * joy_mult
+	var invert: float = -1.0 if (settings and "invert_y" in settings and settings.invert_y) else 1.0
 	if abs(look_x) > 0.12:
 		player.rotate_y(-look_x * joy_sens * delta)
 	if abs(look_y) > 0.12:
-		head.rotate_x(-look_y * joy_sens * invert_y * delta)
+		head.rotate_x(-look_y * joy_sens * invert * delta)
 		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-80), deg_to_rad(80))
 
 func _handle_head_bob(delta: float) -> void:
@@ -83,7 +92,8 @@ func _handle_camera_tilt(delta: float) -> void:
 	camera.rotation.z = lerp_angle(camera.rotation.z, target_cam_tilt, 10.0 * delta)
 
 func _handle_dynamic_fov(delta: float) -> void:
-	var base_fov: float = SettingsManager.base_fov if has_node("/root/SettingsManager") else 85.0
+	var settings: Node = _get_settings()
+	var base_fov: float = settings.base_fov if (settings and "base_fov" in settings) else 85.0
 	var target_fov: float = base_fov
 	if player.is_patotot_on_spine and player.spine_burst_timer > 0.0:
 		target_fov = base_fov + 11.0
