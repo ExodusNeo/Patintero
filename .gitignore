@@ -18,9 +18,10 @@ bin/
 *.zip
 *.apk
 
-# OS / Editor temporary files
+# OS / Editor temporary files & local addons
 .DS_Store
 Thumbs.db
 *.tmp
 *.swp
 *.bak
+addons/

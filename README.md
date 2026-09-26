@@ -31,13 +31,13 @@ In Patintero, two teams face off on a grid drawn with chalk or water on asphalt 
 | Action | Runner (*Tawid*) | Line Guard (*Bantay Linya*) | Patotot (*Captain*) |
 | :--- | :--- | :--- | :--- |
 | **Move** | `W` `A` `S` `D` (Free 3D) | `A` / `D` (Slide along line) | `A` / `D` (Front Line) or `W` / `S` (Center Spine) |
-| **Look** | Mouse (360° Pitch/Yaw) | Mouse (360° Pitch/Yaw) | Mouse (360° Pitch/Yaw) |
+| **Look** | Mouse / Right Stick (360°) | Mouse / Right Stick (360°) | Mouse / Right Stick (360°) |
 | **Lean** | `Q` (Left) / `E` (Right) | `Q` (Left) / `E` (Right) | `Q` (Left) |
 | **Tag** | *N/A* | `Left Click` or `F` (Lunge reach) | `Left Click` or `F` (Lunge reach) |
 | **Switch Axis** | *N/A* | *N/A* | `E` or `Tab` (Toggle Front Line $\leftrightarrow$ Center Spine) |
 | **Sprint** | `Shift` (Consumes stamina) | *N/A* | *N/A* |
 | **Jump** | `Space` | *N/A* | *N/A* |
-| **Crouch** | `Ctrl` / `C` | *N/A* | *N/A* |
+| **Crouch / Slide** | `Ctrl` / `C` | *N/A* | *N/A* |
 | **Toggle Mouse** | `ESC` | `ESC` | `ESC` |
 
 ---
@@ -55,27 +55,99 @@ In Patintero, two teams face off on a grid drawn with chalk or water on asphalt 
 
 ---
 
+## 🏛️ Architecture & Coding Style Guide (Component-Based Composition)
+
+To maintain clean, readable, and maintainable code, **we strictly forbid monolithic 500+ line scripts**. Every entity (such as the Player or Bot) decomposes distinct responsibilities into modular component scripts housed inside a `components/` subfolder.
+
+```
+src/entities/player/
+├── player.tscn                  # Visual hierarchy & node tree
+├── player_controller.gd         # Coordinator (< 200 lines)
+└── components/
+    ├── player_movement.gd       # 3D locomotion, 1D/2D line rails, gravity & sliding
+    ├── player_camera.gd         # Mouse/joypad look, headbob, lean roll & dynamic FOV
+    ├── player_skills.gd         # Sprint slide, lateral jukes, spine burst & stamina
+    ├── player_tagger.gd         # Tag lunges, shapecast hit detection, whiff recovery
+    └── player_audio.gd          # Footstep cadence, exhaustion breathing & exertion SFX
+```
+
+### 🧩 Core Architectural Rules
+
+1. **Strict Line Limit (< 200 Lines Per File):**
+   - Individual script files should remain focused and typically not exceed 200 lines. If a script grows larger, split out new sub-behaviors or mechanics into dedicated component nodes.
+
+2. **Coordinator Pattern:**
+   - The root entity script (e.g. `player_controller.gd` or `bot_player.gd`) acts solely as a **Coordinator**.
+   - It instantiates and wires components, forwards lifecycle hooks (`_ready()`, `_physics_process()`, `_unhandled_input()`), and acts as the public interface for external systems like `HUD`, `Court`, and `MultiplayerSynchronizer`.
+
+3. **Separation of Concerns:**
+   - **Movement & Physics:** Handles kinematic integration (`move_and_slide`), rail clamping, friction, and slope/axis constraints.
+   - **Camera & View:** Manages view rotation (pitch/yaw clamp), lean tweens, bobbing, and FOV adjustments.
+   - **Skills & Abilities:** Owns stamina deduction, cooldown timers, burst vectors, and evasion state.
+   - **Combat & Tagging:** Owns shapecasts, reach calculations, whiff stun penalties, and arm swing animations.
+   - **Audio:** Handles timing and triggers for footsteps, heartbeat, and audio alerts without mixing audio logic into physics loops.
+   - **AI State Machines:** Separated by role (`bot_guard_ai.gd` vs `bot_runner_ai.gd`) with distinct tracking and decision trees.
+
+4. **Preloading Over Bare Type Hints:**
+   - Use `const ComponentScript = preload("res://path/to/component.gd")` instead of global `class_name` annotations across interdependent components to avoid circular dependencies and Godot editor cache issues.
+
+5. **External API Preservation:**
+   - External systems (`HUD`, `Court`, `NetworkManager`) should not need to reach deep into private sub-components. The Coordinator exposes public getters or properties (e.g. `stamina`, `current_zone`, `is_tagged`), keeping components encapsulated.
+
+---
+
 ## 🗺️ Project Structure
 
 ```
 Patintero/
-├── project.godot          # Engine settings & input action definitions
-├── icon.svg               # Custom game icon
-├── scenes/
-│   ├── main_menu.tscn     # Lobby UI, role selector & solo mode launcher
-│   ├── world.tscn         # 3D lighting, court layout, spawner & HUD
-│   ├── court.tscn         # 6-box court, chalk markings, streetlights & hoop
-│   ├── player.tscn        # First-person character with tag shapecast
-│   ├── bot_player.tscn    # Autonomous AI bot player
-│   └── hud.tscn           # Dynamic zone HUD, stamina meter & screen alerts
-└── scripts/
-    ├── network_manager.gd # Autoload: ENet multiplayer & player registry
-    ├── audio_manager.gd   # Autoload: Procedural audio synthesizer
-    ├── player_controller.gd # 1D rail sliding, free 3D roam & tag lunges
-    ├── bot_player.gd      # AI state machine for guards, patotot, and runners
-    ├── court.gd           # Box triggers, turn tracking & out-of-bounds fouls
-    ├── hud.gd             # Zone notifications, stamina bar & screen flashes
-    └── main_menu.gd       # Menu logic & solo test launcher
+├── project.godot                     # Engine configuration & input mappings
+├── icon.svg                          # Custom game icon
+├── src/
+│   ├── arena/
+│   │   ├── court/
+│   │   │   ├── court.tscn            # 6-box court, chalk markings, bounds triggers
+│   │   │   └── court.gd              # Zone tracking, foul detection & scoring
+│   │   ├── scenery/
+│   │   │   ├── sari_sari_store.tscn  # Street corner sari-sari store
+│   │   │   ├── tricycle.tscn         # Authentic Filipino tricycle prop
+│   │   │   ├── utility_poles.tscn    # Tangled wire utility poles & street lights
+│   │   │   └── neighborhood_props.tscn
+│   │   └── world/
+│   │       ├── world.tscn            # Sun, sky environment, court & UI wrapper
+│   │       └── world.gd              # Game flow, role assignments & spawner
+│   ├── assets/
+│   │   └── models/neighborhood/      # 3D assets (houses, street, trees, vehicles)
+│   ├── core/
+│   │   ├── network_manager.gd        # Autoload: ENet server/client room connection
+│   │   ├── audio_manager.gd          # Autoload: Procedural audio synthesis & SFX
+│   │   └── game_manager.gd           # Autoload: Match state, timers & rules
+│   ├── entities/
+│   │   ├── player/
+│   │   │   ├── player.tscn           # CharacterBody3D node tree
+│   │   │   ├── player_controller.gd  # Coordinator script (< 180 lines)
+│   │   │   └── components/
+│   │   │       ├── player_movement.gd # Locomotion & rail physics
+│   │   │       ├── player_camera.gd   # View, mouse look, joypad & lean
+│   │   │       ├── player_skills.gd   # Slide, juke, stamina & burst
+│   │   │       ├── player_tagger.gd   # Tag lunge, reach & whiff stun
+│   │   │       └── player_audio.gd    # Footstep cadence & breathing
+│   │   └── bot/
+│   │       ├── bot_player.tscn       # Bot CharacterBody3D node tree
+│   │       ├── bot_player.gd         # Bot Coordinator script (< 110 lines)
+│   │       └── components/
+│   │           ├── bot_guard_ai.gd   # Line guard reaction & patrol AI
+│   │           ├── bot_runner_ai.gd  # Runner probing, feinting & dash AI
+│   │           └── bot_tagger.gd     # Bot tag detection, reach & stumbles
+│   ├── shaders/
+│   │   └── chalk_line.gdshader       # Dynamic chalk line shader with roughness
+│   └── ui/
+│       ├── hud/
+│       │   ├── hud.tscn              # Dynamic zone notifications & stamina bar
+│       │   └── hud.gd                # UI updates & screen flashes
+│       └── menu/
+│           ├── main_menu.tscn        # Matchmaking, role select & solo test
+│           └── main_menu.gd          # Menu controller
+└── addons/                           # Engine plugins (godot-ai MCP, etc.)
 ```
 
 ---
