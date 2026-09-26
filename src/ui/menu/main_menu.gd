@@ -71,11 +71,13 @@ func _get_selected_role() -> NetworkManager.Role:
 	return role_dropdown.get_selected_id() as NetworkManager.Role
 
 func _on_solo_pressed() -> void:
+	AudioManager.play_ui_start()
 	var role := _get_selected_role()
 	var pname := _get_player_name()
 	NetworkManager.start_solo_test(role, pname)
 
 func _on_host_pressed() -> void:
+	AudioManager.play_ui_click()
 	var role := _get_selected_role()
 	var pname := _get_player_name()
 	var err := NetworkManager.host_game(pname, role)
@@ -92,6 +94,7 @@ func _on_host_pressed() -> void:
 		status_label.modulate = Color(1.0, 0.3, 0.3)
 
 func _on_join_pressed() -> void:
+	AudioManager.play_ui_click()
 	var role := _get_selected_role()
 	var pname := _get_player_name()
 	var ip := ip_input.text.strip_edges()
@@ -112,6 +115,7 @@ func _on_join_pressed() -> void:
 		status_label.modulate = Color(1.0, 0.3, 0.3)
 
 func _on_start_match_pressed() -> void:
+	AudioManager.play_ui_start()
 	NetworkManager.start_multiplayer_match()
 
 func _update_lobby_ui() -> void:
@@ -123,4 +127,5 @@ func _update_lobby_ui() -> void:
 	player_list_label.text = text
 
 func _on_settings_pressed() -> void:
+	AudioManager.play_ui_click()
 	settings_modal.open_as_dialog()

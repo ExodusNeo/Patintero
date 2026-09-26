@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://src/entities/player/player_controller.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://src/entities/player/viewmodel/tsinelas_viewmodel.tscn" id="2_viewmodel"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.4
@@ -12,12 +13,6 @@ height = 1.8
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_1"]
 radius = 0.5
-
-[sub_resource type="BoxMesh" id="BoxMesh_hand"]
-size = Vector3(0.12, 0.12, 0.35)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hand"]
-albedo_color = Color(0.85, 0.65, 0.5, 1)
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_1"]
 properties/0/path = NodePath(".:position")
@@ -64,12 +59,7 @@ shape = SubResource("SphereShape3D_1")
 target_position = Vector3(0, 0, -1.8)
 collision_mask = 2
 
-[node name="ReachHand" type="Node3D" parent="Head"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.3, -0.4)
-
-[node name="HandMesh" type="MeshInstance3D" parent="Head/ReachHand"]
-mesh = SubResource("BoxMesh_hand")
-surface_material_override/0 = SubResource("StandardMaterial3D_hand")
+[node name="Viewmodel" parent="Head" instance=ExtResource("2_viewmodel")]
 
 [node name="NameLabel" type="Label3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)

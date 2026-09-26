@@ -30,8 +30,15 @@ func setup(p: CharacterBody3D, skills: Node) -> void:
 	player = p
 	skills_comp = skills
 
+func _has_authority() -> bool:
+	if not is_instance_valid(player):
+		return false
+	return player.is_multiplayer_authority() if multiplayer.has_multiplayer_peer() else true
+
 func process_movement(delta: float) -> void:
-	if not player.is_multiplayer_authority():
+	if not _has_authority():
+		return
+	if player.is_tagged_falling:
 		return
 	
 	match player.role:

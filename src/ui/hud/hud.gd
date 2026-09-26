@@ -36,6 +36,7 @@ extends CanvasLayer
 var local_player: CharacterBody3D = null
 var current_box_num: int = 0
 var has_turned_around: bool = false
+signal tagged_blackout_finished
 
 func _ready() -> void:
 	NetworkManager.player_tagged.connect(_on_player_tagged)
@@ -131,6 +132,7 @@ func _on_point_event_triggered(team: String, _points: int, reason: String) -> vo
 	_show_notification(reason, color)
 
 func _on_halftime_reached(round_num: int) -> void:
+	AudioManager.play_milestone()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	summary_title.text = "⏱ HALFTIME (ROUND %d FINISHED)" % round_num
 	summary_score_label.text = "RUNNERS: %d pts  |  DEFENSE: %d pts" % [GameManager.runner_score, GameManager.defender_score]
@@ -139,6 +141,7 @@ func _on_halftime_reached(round_num: int) -> void:
 	match_summary_modal.visible = true
 
 func _on_match_completed(winner_team: String, r_score: int, d_score: int) -> void:
+	AudioManager.play_game_over()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	summary_title.text = "🏆 MATCH OVER - %s WIN!" % winner_team
 	summary_score_label.text = "FINAL SCORE:\nRUNNERS: %d pts  |  DEFENSE: %d pts" % [r_score, d_score]
@@ -147,6 +150,7 @@ func _on_match_completed(winner_team: String, r_score: int, d_score: int) -> voi
 	match_summary_modal.visible = true
 
 func _on_summary_button_pressed() -> void:
+	AudioManager.play_ui_click()
 	match_summary_modal.visible = false
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	if GameManager.current_state == GameManager.MatchState.HALFTIME:
@@ -283,8 +287,38 @@ func _on_runner_scored_home(runner_id: int) -> void:
 		AudioManager.play_home_run()
 		_flash_screen(Color(0.2, 1.0, 0.4, 0.4))
 
-func _on_player_tagged(_runner_name: String, _tagger_name: String) -> void:
-	_flash_screen(Color(1.0, 0.1, 0.1, 0.45))
+func _on_player_tagged(runner_name: String, tagger_name: String) -> void:
+	if is_instance_valid(local_player) and local_player.role == NetworkManager.Role.RUNNER:
+		var lp_name: String = local_player.player_name if "player_name" in local_player else ""
+		if lp_name == runner_name or runner_name.contains(lp_name) or lp_name.contains(runner_name) or runner_name == "Runner":
+			_show_notification("💥 TAYA! Tagged by %s!" % tagger_name, Color(1.0, 0.25, 0.25))
+		else:
+			_show_notification("💥 %s was tagged by %s!" % [runner_name, tagger_name], Color(1.0, 0.4, 0.4))
+	else:
+		_flash_screen(Color(1.0, 0.1, 0.1, 0.45))
+		_show_notification("🎯 TAGGED! %s was tagged by %s!" % [runner_name, tagger_name], Color(0.3, 1.0, 0.5))
+
+func play_tagged_impact_flash() -> void:
+	flash_overlay.color = Color(0.85, 0.12, 0.12, 0.55)
+	flash_overlay.visible = true
+	var tw := create_tween()
+	tw.tween_property(flash_overlay, "color", Color(0.35, 0.05, 0.05, 0.20), 0.38).set_trans(Tween.TRANS_QUAD)
+
+func fade_to_black(duration: float = 0.45) -> void:
+	flash_overlay.visible = true
+	var tw := create_tween()
+	tw.tween_property(flash_overlay, "color", Color(0.01, 0.01, 0.02, 1.0), duration).set_trans(Tween.TRANS_QUAD)
+	await tw.finished
+
+func fade_from_black(duration: float = 0.60) -> void:
+	var tw := create_tween()
+	tw.tween_property(flash_overlay, "color:a", 0.0, duration).set_trans(Tween.TRANS_QUAD)
+	await tw.finished
+	flash_overlay.visible = false
+	tagged_blackout_finished.emit()
+
+func play_tagged_blackout() -> void:
+	play_tagged_impact_flash()
 
 func _on_player_foul(_player_name: String, _reason: String) -> void:
 	AudioManager.play_foul()
@@ -299,6 +333,7 @@ func _flash_screen(color: Color) -> void:
 	flash_overlay.visible = false
 
 func _show_notification(msg: String, color: Color) -> void:
+	AudioManager.play_ui_notification()
 	notification_label.text = msg
 	notification_label.modulate = color
 	notification_label.visible = true

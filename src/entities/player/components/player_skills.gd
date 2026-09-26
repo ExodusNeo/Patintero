@@ -3,35 +3,33 @@ class_name PlayerSkills
 
 # Component: Player skills and special abilities
 # Sprint-Slide (Ctrl/B), Lateral Juke (Q/E), Patotot Spine Burst (Shift), and Stamina system
+# Spawns asphalt skid dust VFX on high-speed maneuvers
 # godot-physics / physics-tuning / input-systems
 
 const SLIDE_DURATION: float = 0.65
 const SLIDE_INITIAL_SPEED: float = 11.2
 const SLIDE_STAMINA_COST: float = 20.0
 const SLIDE_COOLDOWN_TIME: float = 1.3
-
 const JUKE_COOLDOWN_TIME: float = 1.3
 const JUKE_STAMINA_COST: float = 15.0
 const JUKE_IMPULSE: float = 6.2
-
 const SPINE_BURST_DURATION: float = 2.0
 const SPINE_BURST_COOLDOWN_TIME: float = 6.0
 const SPINE_BURST_SPEED: float = 9.8
+const SKID_DUST_SCENE := preload("res://src/vfx/dust/skid_dust.tscn")
 
 var player: CharacterBody3D
 var collision_shape: CollisionShape3D
 var mesh_body: MeshInstance3D
 var camera_comp: Node
 
-# States (mirrored on player for HUD / external systems)
 var stamina: float = 100.0
 var is_sliding: bool = false
 var slide_timer: float = 0.0
 var slide_cooldown: float = 0.0
 var slide_direction: Vector3 = Vector3.ZERO
-
+var slide_dust_interval: float = 0.0
 var juke_cooldown: float = 0.0
-
 var spine_burst_timer: float = 0.0
 var spine_burst_cooldown: float = 0.0
 
@@ -42,6 +40,8 @@ func setup(p: CharacterBody3D, col: CollisionShape3D, mesh: MeshInstance3D, cam:
 	camera_comp = cam
 
 func update_skills(delta: float) -> void:
+	if player.is_tagged_falling:
+		return
 	if slide_cooldown > 0.0:
 		slide_cooldown -= delta
 	if juke_cooldown > 0.0:
@@ -57,13 +57,14 @@ func update_skills(delta: float) -> void:
 func _update_stamina(delta: float) -> void:
 	if player.role != NetworkManager.Role.RUNNER:
 		return
-	
 	if player.is_sprinting:
 		stamina = max(stamina - 25.0 * delta, 0.0)
 	elif not is_sliding:
 		stamina = min(stamina + 15.0 * delta, 100.0)
 
 func try_start_slide(direction: Vector3) -> bool:
+	if player.is_tagged_falling:
+		return false
 	var moving_fast: bool = player.velocity.length() > 4.5 or player.is_sprinting
 	if not is_sliding and player.is_on_floor() and slide_cooldown <= 0.0 and stamina >= SLIDE_STAMINA_COST:
 		if moving_fast and Input.is_action_just_pressed("crouch"):
@@ -78,13 +79,20 @@ func _start_slide(dir: Vector3) -> void:
 	slide_cooldown = SLIDE_COOLDOWN_TIME
 	stamina = max(stamina - SLIDE_STAMINA_COST, 0.0)
 	slide_direction = dir if dir != Vector3.ZERO else -player.transform.basis.z
+	slide_dust_interval = 0.0
 	
 	_apply_slide_collision(true)
 	AudioManager.play_slide_skid()
 	AudioManager.play_juke_whoosh()
+	_spawn_skid_dust(-slide_direction + Vector3(0, 0.35, 0))
 
 func _process_slide(delta: float) -> void:
 	slide_timer -= delta
+	slide_dust_interval -= delta
+	if slide_dust_interval <= 0.0:
+		slide_dust_interval = 0.16
+		_spawn_skid_dust(-slide_direction + Vector3(0, 0.3, 0))
+	
 	var progress: float = 1.0 - clamp(slide_timer / SLIDE_DURATION, 0.0, 1.0)
 	var cur_speed: float = lerp(SLIDE_INITIAL_SPEED, 3.2, ease(progress, 2.0))
 	player.velocity.x = slide_direction.x * cur_speed
@@ -114,9 +122,8 @@ func _apply_slide_collision(active: bool) -> void:
 		mesh_body.position.y = 0.0
 
 func try_juke() -> void:
-	if is_sliding or juke_cooldown > 0.0 or stamina < JUKE_STAMINA_COST:
+	if player.is_tagged_falling or is_sliding or juke_cooldown > 0.0 or stamina < JUKE_STAMINA_COST:
 		return
-	
 	if Input.is_action_just_pressed("juke_left"):
 		_perform_juke(-1.0)
 	elif Input.is_action_just_pressed("juke_right"):
@@ -129,7 +136,17 @@ func _perform_juke(dir_lateral: float) -> void:
 	player.velocity += lateral_dir * JUKE_IMPULSE
 	camera_comp.apply_juke_tilt(dir_lateral)
 	AudioManager.play_juke_whoosh()
+	_spawn_skid_dust(-lateral_dir + Vector3(0, 0.35, 0))
 	_notify_guards_of_juke(dir_lateral)
+
+func _spawn_skid_dust(dir: Vector3) -> void:
+	if not player or not player.is_inside_tree():
+		return
+	var dust := SKID_DUST_SCENE.instantiate()
+	player.get_parent().add_child(dust)
+	dust.global_position = player.global_position + Vector3(0, 0.08, 0)
+	dust.direction = dir
+	dust.burst()
 
 func _notify_guards_of_juke(dir_lateral: float) -> void:
 	var feinted_count: int = 0

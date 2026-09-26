@@ -27,8 +27,13 @@ func _get_settings() -> Node:
 		return player.get_node("/root/SettingsManager")
 	return null
 
+func _has_authority() -> bool:
+	if not is_instance_valid(player):
+		return false
+	return player.is_multiplayer_authority() if multiplayer.has_multiplayer_peer() else true
+
 func handle_input(event: InputEvent) -> void:
-	if not player.is_multiplayer_authority():
+	if not _has_authority() or player.is_tagged_falling:
 		return
 	
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -41,7 +46,7 @@ func handle_input(event: InputEvent) -> void:
 		head.rotation.x = clamp(head.rotation.x, deg_to_rad(-80), deg_to_rad(80))
 
 func update_look_and_dynamics(delta: float) -> void:
-	if not player.is_multiplayer_authority():
+	if not _has_authority() or player.is_tagged_falling:
 		return
 	
 	_handle_joypad_look(delta)

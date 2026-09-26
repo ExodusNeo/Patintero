@@ -57,12 +57,12 @@ In Patintero, two teams face off on a grid drawn with chalk or water on asphalt 
 
 ## 🏛️ Architecture & Coding Style Guide (Component-Based Composition)
 
-To maintain clean, readable, and maintainable code, **we strictly forbid monolithic 500+ line scripts**. Every entity (such as the Player or Bot) decomposes distinct responsibilities into modular component scripts housed inside a `components/` subfolder.
+To maintain clean, readable, and maintainable code, **we strictly forbid monolithic God objects where every feature of an entity is crammed into one file**. Every entity (such as the Player or Bot) decomposes distinct responsibilities into modular component scripts housed inside a `components/` subfolder.
 
 ```
 src/entities/player/
 ├── player.tscn                  # Visual hierarchy & node tree
-├── player_controller.gd         # Coordinator (< 200 lines)
+├── player_controller.gd         # Coordinator
 └── components/
     ├── player_movement.gd       # 3D locomotion, 1D/2D line rails, gravity & sliding
     ├── player_camera.gd         # Mouse/joypad look, headbob, lean roll & dynamic FOV
@@ -73,8 +73,8 @@ src/entities/player/
 
 ### 🧩 Core Architectural Rules
 
-1. **Strict Line Limit (< 200 Lines Per File):**
-   - Individual script files should remain focused and typically not exceed 200 lines. If a script grows larger, split out new sub-behaviors or mechanics into dedicated component nodes.
+1. **Feature Separation & Modularity (No Monolithic God Files):**
+   - Files can be as long as necessary to implement their feature thoroughly and robustly. However, distinct features of an object must never live in a single file. Movement/locomotion, abilities/stamina, camera dynamics, combat/tagging, viewmodel animations, and audio must each be isolated in dedicated component scripts.
 
 2. **Coordinator Pattern:**
    - The root entity script (e.g. `player_controller.gd` or `bot_player.gd`) acts solely as a **Coordinator**.
@@ -125,22 +125,31 @@ Patintero/
 │   ├── entities/
 │   │   ├── player/
 │   │   │   ├── player.tscn           # CharacterBody3D node tree
-│   │   │   ├── player_controller.gd  # Coordinator script (< 180 lines)
+│   │   │   ├── player_controller.gd  # Coordinator script
 │   │   │   └── components/
 │   │   │       ├── player_movement.gd # Locomotion & rail physics
 │   │   │       ├── player_camera.gd   # View, mouse look, joypad & lean
 │   │   │       ├── player_skills.gd   # Slide, juke, stamina & burst
 │   │   │       ├── player_tagger.gd   # Tag lunge, reach & whiff stun
 │   │   │       └── player_audio.gd    # Footstep cadence & breathing
+│   │   │       └── viewmodel/
+│   │   │           ├── tsinelas_viewmodel.tscn # Authentic Filipino slipper weapon & hands
+│   │   │           └── tsinelas_viewmodel.gd   # Viewmodel procedural sway & swing anims
 │   │   └── bot/
 │   │       ├── bot_player.tscn       # Bot CharacterBody3D node tree
-│   │       ├── bot_player.gd         # Bot Coordinator script (< 110 lines)
+│   │       ├── bot_player.gd         # Bot Coordinator script
 │   │       └── components/
 │   │           ├── bot_guard_ai.gd   # Line guard reaction & patrol AI
 │   │           ├── bot_runner_ai.gd  # Runner probing, feinting & dash AI
 │   │           └── bot_tagger.gd     # Bot tag detection, reach & stumbles
 │   ├── shaders/
 │   │   └── chalk_line.gdshader       # Dynamic chalk line shader with roughness
+│   ├── vfx/
+│   │   ├── dust/
+│   │   │   ├── skid_dust.tscn        # Asphalt slide & juke dust puff particles
+│   │   │   └── chalk_puff.tscn       # Chalk line crossing powder bursts
+│   │   └── combat/
+│   │       └── tag_hit_effect.tscn   # Comic slap star & spark impact flash
 │   └── ui/
 │       ├── hud/
 │       │   ├── hud.tscn              # Dynamic zone notifications & stamina bar

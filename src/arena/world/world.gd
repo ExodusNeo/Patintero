@@ -32,8 +32,9 @@ func _on_player_tagged(runner_name: String, _tagger_name: String) -> void:
 		if child is CharacterBody3D:
 			if "role" in child and child.role == NetworkManager.Role.RUNNER:
 				var c_name: String = child.player_name if "player_name" in child else child.bot_name if "bot_name" in child else ""
-				if c_name == runner_name or runner_name.contains(c_name) or c_name.contains(runner_name):
-					if child.has_method("on_tagged"):
+				if c_name == runner_name or runner_name.contains(c_name) or c_name.contains(runner_name) or runner_name == "Runner":
+					var is_falling: bool = child.is_tagged_falling if "is_tagged_falling" in child else false
+					if not is_falling and child.has_method("on_tagged"):
 						child.on_tagged()
 			elif "role" in child and child.role != NetworkManager.Role.RUNNER:
 				if child.has_method("reset_defender_position"):
@@ -120,6 +121,7 @@ func _link_hud_to_local_player() -> void:
 		hud.set_local_player(local_p)
 	else:
 		for child in players_container.get_children():
-			if child is CharacterBody3D and child.is_multiplayer_authority():
+			var has_auth: bool = child.is_multiplayer_authority() if multiplayer.has_multiplayer_peer() else true
+			if child is CharacterBody3D and has_auth:
 				hud.set_local_player(child)
 				break

@@ -1,0 +1,39 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/vfx/dust/chalk_puff.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_Chalk"]
+transparency = 1
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 1, 1, 0.85)
+roughness = 0.95
+
+[sub_resource type="SphereMesh" id="Mesh_ChalkGrain"]
+material = SubResource("Mat_Chalk")
+radius = 0.08
+height = 0.16
+radial_segments = 6
+rings = 4
+
+[sub_resource type="Gradient" id="Gradient_Fade"]
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(1, 1, 1, 0.9, 0.95, 0.95, 0.95, 0.6, 1, 1, 1, 0)
+
+[node name="ChalkPuff" type="CPUParticles3D"]
+emitting = false
+amount = 20
+lifetime = 0.45
+one_shot = true
+explosiveness = 0.9
+mesh = SubResource("Mesh_ChalkGrain")
+direction = Vector3(0, 1, 0)
+spread = 65.0
+gravity = Vector3(0, -0.4, 0)
+initial_velocity_min = 1.0
+initial_velocity_max = 2.4
+damping_min = 2.0
+damping_max = 4.0
+scale_amount_min = 0.5
+scale_amount_max = 1.3
+color_ramp = SubResource("Gradient_Fade")
+script = ExtResource("1_script")

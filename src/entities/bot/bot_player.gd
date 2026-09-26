@@ -24,6 +24,7 @@ var tagger: Node
 @export var bot_name: String = "Bot"
 @export var player_name: String = "Bot"
 @export var peer_id: int = 0
+var is_tagged_falling: bool = false
 
 var is_patotot_on_spine: bool:
 	get: return guard_ai.is_patotot_on_spine if guard_ai else false
@@ -61,6 +62,15 @@ func _initialize_components() -> void:
 
 func _physics_process(delta: float) -> void:
 	tagger.update_timers(delta)
+	
+	if is_tagged_falling:
+		if not is_on_floor():
+			velocity.y -= 18.0 * delta
+		else:
+			velocity.x = move_toward(velocity.x, 0.0, 7.5 * delta)
+			velocity.z = move_toward(velocity.z, 0.0, 7.5 * delta)
+		move_and_slide()
+		return
 	
 	if role == NetworkManager.Role.RUNNER:
 		runner_ai.process_runner(delta)
@@ -103,8 +113,43 @@ func _spawn_at_role_position() -> void:
 			rotation.y = 0.0
 
 func on_tagged() -> void:
-	if role == NetworkManager.Role.RUNNER and runner_ai:
-		runner_ai.on_tagged()
+	if role != NetworkManager.Role.RUNNER or is_tagged_falling:
+		return
+	
+	is_tagged_falling = true
+	# Stumble backward with friction
+	var stagger_dir := -transform.basis.z * 3.0
+	velocity = stagger_dir
+	AudioManager.play_footstep(1.2)
+	
+	# Stumble tilt
+	var stumble_tw := create_tween().set_parallel(true)
+	stumble_tw.tween_property(mesh_body, "rotation:z", deg_to_rad(-16.0), 0.22)
+	stumble_tw.tween_property(mesh_body, "position:y", -0.15, 0.22)
+	
+	await get_tree().create_timer(0.38).timeout
+	
+	# Visual collapse/fall down animation onto the asphalt
+	var fall_tw := create_tween().set_parallel(true)
+	fall_tw.tween_property(mesh_body, "rotation:z", deg_to_rad(85.0), 0.48).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	fall_tw.tween_property(mesh_body, "position:y", -0.45, 0.48)
+	
+	# Play knockdown impact thud when hitting the asphalt
+	get_tree().create_timer(0.32).timeout.connect(func(): AudioManager.play_knockdown_thud())
+	
+	# Hold on asphalt for 1.35s
+	await get_tree().create_timer(1.35).timeout
+	
+	# Reposition back at the start line and reset state
+	if runner_ai:
+		runner_ai.reset_after_tag()
+	
+	# Reset upright cleanly at start line
+	mesh_body.rotation.z = 0.0
+	mesh_body.position.y = 0.0
+	
+	await get_tree().create_timer(0.20).timeout
+	is_tagged_falling = false
 
 func on_feinted_by_runner(juke_dir: float, _runner: Node3D) -> void:
 	if tagger:

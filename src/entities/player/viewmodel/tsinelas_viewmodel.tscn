@@ -1,0 +1,107 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://src/entities/player/viewmodel/tsinelas_viewmodel.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_Skin"]
+albedo_color = Color(0.82, 0.62, 0.46, 1)
+roughness = 0.65
+
+[sub_resource type="CylinderMesh" id="Mesh_Forearm"]
+material = SubResource("Mat_Skin")
+top_radius = 0.045
+bottom_radius = 0.055
+height = 0.32
+
+[sub_resource type="BoxMesh" id="Mesh_Hand"]
+material = SubResource("Mat_Skin")
+size = Vector3(0.085, 0.05, 0.11)
+
+[sub_resource type="StandardMaterial3D" id="Mat_SoleWhite"]
+albedo_color = Color(0.95, 0.95, 0.92, 1)
+roughness = 0.7
+
+[sub_resource type="BoxMesh" id="Mesh_SoleBottom"]
+material = SubResource("Mat_SoleWhite")
+size = Vector3(0.12, 0.015, 0.28)
+
+[sub_resource type="StandardMaterial3D" id="Mat_SoleBlue"]
+albedo_color = Color(0.12, 0.42, 0.85, 1)
+roughness = 0.55
+
+[sub_resource type="BoxMesh" id="Mesh_SoleTop"]
+material = SubResource("Mat_SoleBlue")
+size = Vector3(0.116, 0.015, 0.276)
+
+[sub_resource type="StandardMaterial3D" id="Mat_StrapWhite"]
+albedo_color = Color(0.96, 0.96, 0.96, 1)
+roughness = 0.4
+
+[sub_resource type="CylinderMesh" id="Mesh_StrapPost"]
+material = SubResource("Mat_StrapWhite")
+top_radius = 0.007
+bottom_radius = 0.007
+height = 0.035
+
+[sub_resource type="BoxMesh" id="Mesh_StrapBranch"]
+material = SubResource("Mat_StrapWhite")
+size = Vector3(0.018, 0.006, 0.11)
+
+[node name="TsinelasViewmodel" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="ArmRoot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.28, -0.28, -0.42)
+
+[node name="Forearm" type="MeshInstance3D" parent="ArmRoot"]
+transform = Transform3D(1, 0, 0, 0, 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, -0.12, 0.16)
+mesh = SubResource("Mesh_Forearm")
+
+[node name="Hand" type="MeshInstance3D" parent="ArmRoot"]
+transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0.02, 0.04)
+mesh = SubResource("Mesh_Hand")
+
+[node name="Slipper" type="Node3D" parent="ArmRoot"]
+transform = Transform3D(1, 0, 0, 0, 0.939693, -0.34202, 0, 0.34202, 0.939693, 0, 0.06, -0.09)
+
+[node name="SoleBottom" type="MeshInstance3D" parent="ArmRoot/Slipper"]
+mesh = SubResource("Mesh_SoleBottom")
+
+[node name="SoleTop" type="MeshInstance3D" parent="ArmRoot/Slipper"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.014, 0)
+mesh = SubResource("Mesh_SoleTop")
+
+[node name="StrapPost" type="MeshInstance3D" parent="ArmRoot/Slipper"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.035, -0.07)
+mesh = SubResource("Mesh_StrapPost")
+
+[node name="StrapLeft" type="MeshInstance3D" parent="ArmRoot/Slipper"]
+transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, -0.025, 0.03, -0.02)
+mesh = SubResource("Mesh_StrapBranch")
+
+[node name="StrapRight" type="MeshInstance3D" parent="ArmRoot/Slipper"]
+transform = Transform3D(0.866025, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866025, 0.025, 0.03, -0.02)
+mesh = SubResource("Mesh_StrapBranch")
+
+[node name="RunnerLeftHand" type="Node3D" parent="."]
+transform = Transform3D(0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0, 0, 1, -0.28, -0.32, -0.42)
+visible = false
+
+[node name="Arm" type="MeshInstance3D" parent="RunnerLeftHand"]
+transform = Transform3D(1, 0, 0, 0, 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, -0.1, 0.12)
+mesh = SubResource("Mesh_Forearm")
+
+[node name="Hand" type="MeshInstance3D" parent="RunnerLeftHand"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0.02)
+mesh = SubResource("Mesh_Hand")
+
+[node name="RunnerRightHand" type="Node3D" parent="."]
+transform = Transform3D(0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0, 0, 1, 0.28, -0.32, -0.42)
+visible = false
+
+[node name="Arm" type="MeshInstance3D" parent="RunnerRightHand"]
+transform = Transform3D(1, 0, 0, 0, 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, -0.1, 0.12)
+mesh = SubResource("Mesh_Forearm")
+
+[node name="Hand" type="MeshInstance3D" parent="RunnerRightHand"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0.02)
+mesh = SubResource("Mesh_Hand")

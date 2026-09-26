@@ -1,0 +1,52 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://src/vfx/combat/tag_hit_effect.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_Star"]
+shading_mode = 0
+albedo_color = Color(1, 0.9, 0.2, 1)
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="QuadMesh" id="Mesh_StarQuad"]
+material = SubResource("Mat_Star")
+size = Vector2(0.65, 0.65)
+
+[sub_resource type="StandardMaterial3D" id="Mat_Spark"]
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 0.75, 0.15, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_SparkBox"]
+material = SubResource("Mat_Spark")
+size = Vector3(0.04, 0.04, 0.04)
+
+[sub_resource type="Gradient" id="Gradient_Spark"]
+offsets = PackedFloat32Array(0, 0.65, 1)
+colors = PackedColorArray(1, 1, 0.6, 1, 1, 0.6, 0.1, 0.8, 1, 0.2, 0.1, 0)
+
+[node name="TagHitEffect" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="StarFlash" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_StarQuad")
+
+[node name="SparkParticles" type="CPUParticles3D" parent="."]
+emitting = false
+amount = 16
+lifetime = 0.35
+one_shot = true
+explosiveness = 0.92
+mesh = SubResource("Mesh_SparkBox")
+direction = Vector3(0, 0.2, 0)
+spread = 180.0
+gravity = Vector3(0, -3.5, 0)
+initial_velocity_min = 2.5
+initial_velocity_max = 5.0
+damping_min = 3.0
+damping_max = 6.0
+scale_amount_min = 0.8
+scale_amount_max = 1.6
+color_ramp = SubResource("Gradient_Spark")

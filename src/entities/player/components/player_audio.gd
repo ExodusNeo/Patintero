@@ -10,8 +10,13 @@ var footstep_timer: float = 0.0
 func setup(p: CharacterBody3D) -> void:
 	player = p
 
+func _has_authority() -> bool:
+	if not is_instance_valid(player):
+		return false
+	return player.is_multiplayer_authority() if multiplayer.has_multiplayer_peer() else true
+
 func update_audio(delta: float) -> void:
-	if not player.is_multiplayer_authority():
+	if not _has_authority():
 		return
 	
 	_handle_footsteps(delta)
@@ -44,5 +49,4 @@ func _handle_stamina_audio() -> void:
 		AudioManager.set_low_stamina_active(false, 0.0)
 
 func cleanup() -> void:
-	if player.is_multiplayer_authority() and player.role == NetworkManager.Role.RUNNER:
-		AudioManager.set_low_stamina_active(false, 0.0)
+	AudioManager.set_low_stamina_active(false, 0.0)

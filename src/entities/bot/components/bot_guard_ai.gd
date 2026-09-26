@@ -189,6 +189,9 @@ func _find_nearest_runner() -> Node3D:
 	var players: Array[Node] = bot.get_tree().get_nodes_in_group("players")
 	for p in players:
 		if p != bot and "role" in p and p.role == NetworkManager.Role.RUNNER:
+			var is_falling: bool = p.is_tagged_falling if "is_tagged_falling" in p else false
+			if is_falling:
+				continue
 			var d := bot.global_position.distance_to(p.global_position)
 			if d < min_dist:
 				min_dist = d

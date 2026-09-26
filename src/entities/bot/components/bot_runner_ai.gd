@@ -147,13 +147,18 @@ func process_runner(delta: float) -> void:
 		var target_facing: float = 0.0 if bot.velocity.z > 0 else deg_to_rad(180)
 		bot.rotation.y = lerp_angle(bot.rotation.y, target_facing, 8.0 * delta)
 
-func on_tagged() -> void:
+func reset_after_tag() -> void:
 	runner_state = RunnerState.STAGING
 	has_reached_back = false
-	bot.global_position = Vector3(randf_range(-2.5, 2.5), 0.9, -3.5)
+	var start_x: float = -2.75 if randf() < 0.5 else 2.75
+	bot.global_position = Vector3(start_x, 0.9, -3.5)
+	bot.rotation.y = deg_to_rad(180)
 	bot.velocity = Vector3.ZERO
 	post_turnaround_timer = 1.0
 	chosen_lane_x = LANE_LEFT_X if randf() < 0.5 else LANE_RIGHT_X
+
+func on_tagged() -> void:
+	reset_after_tag()
 
 func _find_guard_for_role(g_role: int) -> Node3D:
 	if g_role == -1:

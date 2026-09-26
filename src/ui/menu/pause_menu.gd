@@ -57,7 +57,6 @@ func pause_game() -> void:
 	resume_btn.text = "▶ RESUME"
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
-	# Solo mode freezes physics, multiplayer keeps world ticking
 	if NetworkManager.is_solo_test:
 		get_tree().paused = true
 	
@@ -65,11 +64,10 @@ func pause_game() -> void:
 	resume_btn.grab_focus()
 
 func _get_settings() -> Node:
-	if is_inside_tree() and has_node("/root/SettingsManager"):
-		return get_node("/root/SettingsManager")
-	return null
+	return get_node_or_null("/root/SettingsManager") if is_inside_tree() else null
 
 func resume_game() -> void:
+	AudioManager.play_ui_click()
 	is_paused = false
 	visible = false
 	controls_panel.visible = false
@@ -85,35 +83,25 @@ func resume_game() -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _setup_settings_ui() -> void:
-	# Mouse Sensitivity (0.2 to 3.0)
-	mouse_sens_slider.min_value = 0.2
-	mouse_sens_slider.max_value = 3.0
-	mouse_sens_slider.step = 0.05
+	for slider in [mouse_sens_slider, joy_sens_slider]:
+		slider.min_value = 0.2
+		slider.max_value = 3.0
+		slider.step = 0.05
 	mouse_sens_slider.value_changed.connect(_on_mouse_sens_changed)
-	
-	# Joypad Sensitivity (0.2 to 3.0)
-	joy_sens_slider.min_value = 0.2
-	joy_sens_slider.max_value = 3.0
-	joy_sens_slider.step = 0.05
 	joy_sens_slider.value_changed.connect(_on_joy_sens_changed)
-	
-	# Invert Y
 	invert_y_check.toggled.connect(_on_invert_y_toggled)
 	
-	# FOV (70 to 110)
 	fov_slider.min_value = 70.0
 	fov_slider.max_value = 110.0
 	fov_slider.step = 1.0
 	fov_slider.value_changed.connect(_on_fov_changed)
 	
-	# Audio Volume
 	volume_slider.min_value = 0.0
 	volume_slider.max_value = 100.0
 	volume_slider.step = 1.0
 	volume_slider.value_changed.connect(_on_volume_changed)
 	mute_btn.pressed.connect(_on_mute_pressed)
 	
-	# Display Dropdown
 	display_dropdown.clear()
 	display_dropdown.add_item("Windowed", 0)
 	display_dropdown.add_item("Borderless Fullscreen", 1)
@@ -139,7 +127,6 @@ func _load_current_values() -> void:
 	volume_slider.value = AudioManager.master_volume * 100.0
 	volume_val.text = "%d%%" % int(volume_slider.value)
 	mute_btn.text = "🔇" if AudioManager.is_muted else "🔊"
-	
 	display_dropdown.selected = s.display_mode if (s and "display_mode" in s) else 0
 
 func _process(delta: float) -> void:
@@ -190,10 +177,12 @@ func _on_display_selected(index: int) -> void:
 		s.set_display_mode(index)
 
 func _toggle_controls_view() -> void:
+	AudioManager.play_ui_click()
 	controls_panel.visible = not controls_panel.visible
 	toggle_controls_btn.text = "📖 HIDE CONTROLS GUIDE" if controls_panel.visible else "📖 SHOW CONTROLS GUIDE"
 
 func _on_quit_pressed() -> void:
+	AudioManager.play_ui_click()
 	resume_game()
 	if multiplayer.multiplayer_peer:
 		multiplayer.multiplayer_peer.close()

@@ -190,10 +190,17 @@ func sync_players(roster: Dictionary) -> void:
 	players = roster
 	players_updated.emit()
 
+var _recent_tag_timestamps: Dictionary = {}
+
 @rpc("any_peer", "call_local", "reliable")
 func report_tag(runner_id: int, tagger_id: int, runner_fallback: String = "Runner", tagger_fallback: String = "Guard") -> void:
 	var r_name: String = players.get(runner_id, {}).get("name", runner_fallback)
 	var t_name: String = players.get(tagger_id, {}).get("name", tagger_fallback)
+	var now := Time.get_ticks_msec()
+	var tag_key := "%d_%s" % [runner_id, r_name]
+	if _recent_tag_timestamps.has(tag_key) and (now - _recent_tag_timestamps[tag_key]) < 2400:
+		return
+	_recent_tag_timestamps[tag_key] = now
 	player_tagged.emit(r_name, t_name)
 
 @rpc("any_peer", "call_local", "reliable")

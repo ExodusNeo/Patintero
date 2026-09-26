@@ -2,15 +2,17 @@ extends Node
 class_name PlayerTagger
 
 # Component: Combat, Tag Shapecasting, Charged Sweep, and Whiff Penalties
+# Drives TsinelasViewmodel animations and TagHitEffect contact juice
 # godot-physics / audio-design / input-systems
 
 const MAX_TAG_CHARGE: float = 0.55
 const TAG_RECOVERY_STUN_TIME: float = 0.75
+const TAG_HIT_EFFECT := preload("res://src/vfx/combat/tag_hit_effect.tscn")
 
 var player: CharacterBody3D
 var head: Node3D
 var tag_cast: ShapeCast3D
-var reach_hand: Node3D
+var viewmodel: TsinelasViewmodel
 
 var is_tagging: bool = false
 var tag_cooldown: float = 0.0
@@ -18,11 +20,16 @@ var is_charging_tag: bool = false
 var tag_charge_time: float = 0.0
 var tag_recovery_stun: float = 0.0
 
-func setup(p: CharacterBody3D, h: Node3D, tc: ShapeCast3D, rh: Node3D) -> void:
+func setup(p: CharacterBody3D, h: Node3D, tc: ShapeCast3D, vm: Node3D) -> void:
 	player = p
 	head = h
 	tag_cast = tc
-	reach_hand = rh
+	viewmodel = vm as TsinelasViewmodel
+
+func _has_authority() -> bool:
+	if not is_instance_valid(player):
+		return false
+	return player.is_multiplayer_authority() if multiplayer.has_multiplayer_peer() else true
 
 func update_tagger(delta: float) -> void:
 	if tag_recovery_stun > 0.0:
@@ -30,11 +37,22 @@ func update_tagger(delta: float) -> void:
 	if tag_cooldown > 0.0:
 		tag_cooldown -= delta
 	
+	if viewmodel and _has_authority():
+		viewmodel.update_viewmodel(
+			delta,
+			player.velocity,
+			player.is_sprinting,
+			player.is_sliding,
+			is_charging_tag,
+			tag_charge_time / MAX_TAG_CHARGE,
+			tag_recovery_stun
+		)
+	
 	if player.role != NetworkManager.Role.RUNNER:
 		_process_tag_input(delta)
 
 func _process_tag_input(delta: float) -> void:
-	if not player.is_multiplayer_authority():
+	if not _has_authority():
 		return
 	
 	if tag_recovery_stun > 0.0 or is_tagging or tag_cooldown > 0.0:
@@ -63,13 +81,17 @@ func _execute_tag(is_charged: bool) -> void:
 		if sphere:
 			sphere.radius = 0.65
 		tag_cast.target_position = Vector3(0, 0, -1.85)
-		_animate_charged_sweep()
+		if viewmodel:
+			viewmodel.play_charged_sweep()
+		_animate_head_lunge(0.18, -0.22)
 	else:
 		AudioManager.play_juke_whoosh()
 		if sphere:
 			sphere.radius = 0.38
 		tag_cast.target_position = Vector3(0, 0, -1.35)
-		_animate_quick_tag()
+		if viewmodel:
+			viewmodel.play_quick_slap()
+		_animate_head_lunge(0.11, -0.15)
 	
 	tag_cast.force_shapecast_update()
 	var hit_runner: bool = false
@@ -77,6 +99,10 @@ func _execute_tag(is_charged: bool) -> void:
 		for i in range(tag_cast.get_collision_count()):
 			var collider: Object = tag_cast.get_collider(i)
 			if collider != player and "role" in collider and collider.role == NetworkManager.Role.RUNNER:
+				var runner_falling: bool = collider.is_tagged_falling if "is_tagged_falling" in collider else false
+				if runner_falling:
+					continue
+				
 				var runner_sliding: bool = collider.is_sliding if "is_sliding" in collider else false
 				if runner_sliding and not is_charged and head.rotation.x > deg_to_rad(-12.0):
 					# Evaded! Low slide slipped underneath high standing tag
@@ -85,52 +111,28 @@ func _execute_tag(is_charged: bool) -> void:
 					AudioManager.play_juke_whoosh()
 					continue
 				
+				# Spawn crunchy impact hit effect!
+				if collider is Node3D:
+					var hit_vfx := TAG_HIT_EFFECT.instantiate()
+					player.get_tree().root.add_child(hit_vfx)
+					hit_vfx.global_position = collider.global_position + Vector3(0, 0.8, 0)
+				
 				var target_name: String = collider.player_name if "player_name" in collider else collider.bot_name if "bot_name" in collider else "Runner"
 				NetworkManager.trigger_tag(collider.peer_id if "peer_id" in collider else 0, player.peer_id, target_name, player.player_name)
 				hit_runner = true
 				break
 	
-	if not hit_runner:
-		if is_charged:
-			tag_recovery_stun = TAG_RECOVERY_STUN_TIME
-			tag_cooldown = 0.9
-		else:
-			tag_cooldown = 0.4
-	else:
-		tag_cooldown = 0.5
+	tag_cooldown = 0.5 if hit_runner else (0.9 if is_charged else 0.4)
+	if not hit_runner and is_charged:
+		tag_recovery_stun = TAG_RECOVERY_STUN_TIME
 	
 	if sphere:
 		sphere.radius = 0.38
 	tag_cast.target_position = Vector3(0, 0, -1.35)
-
-func _animate_quick_tag() -> void:
-	var tween := create_tween().set_parallel(true)
-	reach_hand.visible = true
-	reach_hand.position = Vector3(0.3, -0.3, -0.4)
-	tween.tween_property(reach_hand, "position", Vector3(0.0, -0.1, -1.25), 0.11).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(head, "position:z", -0.15, 0.11)
 	
-	await tween.finished
-	var return_tween := create_tween().set_parallel(true)
-	return_tween.tween_property(reach_hand, "position", Vector3(0.3, -0.3, -0.4), 0.14)
-	return_tween.tween_property(head, "position:z", 0.0, 0.14)
-	await return_tween.finished
-	is_tagging = false
-	if not player.is_multiplayer_authority():
-		reach_hand.visible = false
+	get_tree().create_timer(0.25).timeout.connect(func(): is_tagging = false)
 
-func _animate_charged_sweep() -> void:
-	var tween := create_tween().set_parallel(true)
-	reach_hand.visible = true
-	reach_hand.position = Vector3(0.55, -0.1, -0.3)
-	tween.tween_property(reach_hand, "position", Vector3(-0.55, -0.15, -1.6), 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(head, "position:z", -0.22, 0.18)
-	
-	await tween.finished
-	var return_tween := create_tween().set_parallel(true)
-	return_tween.tween_property(reach_hand, "position", Vector3(0.3, -0.3, -0.4), 0.22)
-	return_tween.tween_property(head, "position:z", 0.0, 0.22)
-	await return_tween.finished
-	is_tagging = false
-	if not player.is_multiplayer_authority():
-		reach_hand.visible = false
+func _animate_head_lunge(duration: float, z_depth: float) -> void:
+	var tw := create_tween()
+	tw.tween_property(head, "position:z", z_depth, duration).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(head, "position:z", 0.0, duration + 0.05).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
