@@ -81,7 +81,7 @@ func _ready() -> void:
 	floor_constant_speed = true
 	floor_stop_on_slope = true
 	collision_layer = 2 # Player/Guard layer
-	collision_mask = 3 # Collide with World/Ground (1) and other Players/Guards (2)
+	collision_mask = 1 # Ground/World only (non-contact rules prevent wedging & wall blocking)
 	
 	if name.is_valid_int():
 		peer_id = name.to_int()
@@ -356,7 +356,8 @@ func _notify_guards_of_juke(dir_lateral: float) -> void:
 					p.on_feinted_by_runner(dir_lateral, self)
 					feinted_count += 1
 	if feinted_count > 0:
-		GameManager.show_combat_banner("⚡ ANKLE BREAKER! DEFENDER BITES FAKE!", Color(1.0, 0.85, 0.2))
+		GameManager.add_runner_points(1, "ANKLE BREAKER: Baited defender! (+1 Runner)")
+		GameManager.show_combat_banner("⚡ ANKLE BREAKER! DEFENDER BITES FAKE! (+1 PT)", Color(1.0, 0.85, 0.2))
 
 # --- LINE GUARD PHYSICS (Locked to assigned horizontal line) ---
 func _physics_line_guard(delta: float) -> void:
@@ -592,3 +593,12 @@ func on_tagged() -> void:
 		velocity = Vector3.ZERO
 		stamina = 100.0
 		AudioManager.set_low_stamina_active(false, 0.0)
+
+func reset_defender_position() -> void:
+	if role == NetworkManager.Role.RUNNER:
+		return
+	velocity = Vector3.ZERO
+	tag_cooldown = 0.6
+	tag_recovery_stun = 0.0
+	is_patotot_on_spine = false
+	_spawn_at_role_position()

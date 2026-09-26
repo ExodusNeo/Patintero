@@ -29,11 +29,15 @@ func _ready() -> void:
 
 func _on_player_tagged(runner_name: String, _tagger_name: String) -> void:
 	for child in players_container.get_children():
-		if child is CharacterBody3D and "role" in child and child.role == NetworkManager.Role.RUNNER:
-			var c_name: String = child.player_name if "player_name" in child else child.bot_name if "bot_name" in child else ""
-			if c_name == runner_name or runner_name.contains(c_name) or c_name.contains(runner_name):
-				if child.has_method("on_tagged"):
-					child.on_tagged()
+		if child is CharacterBody3D:
+			if "role" in child and child.role == NetworkManager.Role.RUNNER:
+				var c_name: String = child.player_name if "player_name" in child else child.bot_name if "bot_name" in child else ""
+				if c_name == runner_name or runner_name.contains(c_name) or c_name.contains(runner_name):
+					if child.has_method("on_tagged"):
+						child.on_tagged()
+			elif "role" in child and child.role != NetworkManager.Role.RUNNER:
+				if child.has_method("reset_defender_position"):
+					child.reset_defender_position()
 
 func _on_player_foul(_runner_name: String, _reason: String) -> void:
 	# Fouls award points to defense, but do NOT teleport runner back to start

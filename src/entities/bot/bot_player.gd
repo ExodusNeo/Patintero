@@ -71,7 +71,7 @@ func _ready() -> void:
 		peer_id = get_instance_id()
 	player_name = "🤖 %s" % bot_name
 	collision_layer = 2 # Player/Guard layer
-	collision_mask = 3 # Collide with World/Ground (1) and other Players/Guards (2)
+	collision_mask = 1 # Ground/World only (non-contact rules prevent blocking teammates and sliding runners)
 	name_label.text = "%s\n[%s]" % [player_name, NetworkManager.get_role_name(role)]
 	_apply_role_appearance()
 	_spawn_at_role_position()
@@ -139,14 +139,31 @@ func on_tagged() -> void:
 		post_turnaround_timer = 1.0 # 1 second recovery freeze
 		chosen_lane_x = LANE_LEFT_X if randf() < 0.5 else LANE_RIGHT_X
 
+func reset_defender_position() -> void:
+	if role == NetworkManager.Role.RUNNER:
+		return
+	velocity = Vector3.ZERO
+	tag_cooldown = 0.6
+	is_patotot_on_spine = false
+	feint_override_timer = 0.0
+	feint_stumble_timer = 0.0
+	_spawn_at_role_position()
+
 func on_feinted_by_runner(juke_dir: float, _runner: Node3D) -> void:
 	if role == NetworkManager.Role.RUNNER:
 		return
-	# Defender falls for the fake cut (Ankle Breaker!)
-	feint_override_timer = 0.48
-	feint_override_dir = juke_dir
-	feint_stumble_timer = 0.38
+	# Defender falls for the fake cut (Ankle Breaker!):
+	# Runner jukes in juke_dir (+1=right, -1=left), so defender bites in opposite direction (-juke_dir)!
+	feint_override_timer = 0.55
+	feint_override_dir = -juke_dir
+	feint_stumble_timer = 0.45
+	tag_cooldown = max(tag_cooldown, 0.9) # Cannot tag while recovering from stumble
 	AudioManager.play_slide_skid()
+	
+	# Visual stumble animation: tilt body away
+	var tween := create_tween()
+	tween.tween_property(mesh_body, "rotation:z", deg_to_rad(-juke_dir * 18.0), 0.12)
+	tween.tween_property(mesh_body, "rotation:z", 0.0, 0.25)
 
 # --- AI LINE GUARD (Horizontal tracking with human reaction time & inertia) ---
 func _ai_line_guard_tick(delta: float) -> void:
@@ -251,33 +268,37 @@ func _ai_patotot_tick(delta: float) -> void:
 	
 	if runner_in_court:
 		# --- CENTER SPINE MODE (Z Axis, X locked to 0) ---
-		# 1. Slide smoothly onto Center Spine (X = 0)
+		# 1. Slide smoothly onto Center Spine (X = 0) along Front Line before advancing
 		if abs(global_position.x) > 0.15:
+			global_position.z = move_toward(global_position.z, 0.0, 0.2)
 			velocity.x = move_toward(velocity.x, -sign(global_position.x) * GUARD_TRACK_SPEED, GUARD_ACCEL * delta)
+			velocity.z = 0.0
+			is_patotot_on_spine = false
 		else:
 			global_position.x = 0.0
 			velocity.x = 0.0
 			is_patotot_on_spine = true
-		
-		# 2. Track runner along spine (Z axis: 0.0 to 15.0)
-		if target_runner:
-			var dz: float = perceived_runner_z - global_position.z
-			var desired_vz: float = 0.0
-			if abs(dz) > 0.2:
-				desired_vz = clamp(dz * 4.0, -GUARD_TRACK_SPEED, GUARD_TRACK_SPEED)
-			velocity.z = move_toward(velocity.z, desired_vz, GUARD_ACCEL * delta)
 			
-			# Face the runner into whatever lane/box they are currently in
-			var look_offset: Vector3 = target_runner.global_position - global_position
-			look_offset.y = 0.0
-			if look_offset.length() > 0.2:
-				rotation.y = lerp_angle(rotation.y, atan2(-look_offset.x, -look_offset.z), 10.0 * delta)
-			
-			# Tag runner if in reach
-			if global_position.distance_to(target_runner.global_position) < 1.4 and tag_cooldown <= 0.0:
-				_attempt_tag()
-		else:
-			velocity.z = move_toward(velocity.z, 0.0, GUARD_ACCEL * delta)
+			# 2. Track runner along spine (Z axis: 0.0 to 15.0)
+			if target_runner:
+				var dz: float = perceived_runner_z - global_position.z
+				var desired_vz: float = 0.0
+				if abs(dz) > 0.2:
+					desired_vz = clamp(dz * 4.5, -GUARD_TRACK_SPEED, GUARD_TRACK_SPEED)
+				velocity.z = move_toward(velocity.z, desired_vz, GUARD_ACCEL * delta)
+				
+				# Face the runner into whatever lane/box they are currently in
+				var look_offset: Vector3 = target_runner.global_position - global_position
+				look_offset.y = 0.0
+				if look_offset.length() > 0.2:
+					rotation.y = lerp_angle(rotation.y, atan2(-look_offset.x, -look_offset.z), 10.0 * delta)
+				
+				# Tag runner if in reach across the center spine
+				var dist: float = global_position.distance_to(target_runner.global_position)
+				if dist < 1.45 and tag_cooldown <= 0.0:
+					_attempt_tag()
+			else:
+				velocity.z = move_toward(velocity.z, 0.0, GUARD_ACCEL * delta)
 		
 		# Clamp inside court spine limits (0.0 to 15.0)
 		if (global_position.z <= 0.0 and velocity.z < 0) or (global_position.z >= 15.0 and velocity.z > 0):
@@ -554,7 +575,7 @@ func _find_nearest_guard() -> Node3D:
 	return closest
 
 func _attempt_tag() -> void:
-	if tag_cooldown > 0.0 or is_tagging:
+	if tag_cooldown > 0.0 or is_tagging or feint_stumble_timer > 0.0:
 		return
 	tag_cooldown = 0.85 # Whiff recovery window gives runners time to break through
 	is_tagging = true
@@ -580,9 +601,10 @@ func _attempt_tag() -> void:
 				var is_sliding: bool = c.is_sliding if "is_sliding" in c else false
 				if is_sliding:
 					# SLID UNDER TAG: High standing swing passes harmlessly over sliding runner!
-					tag_cooldown = 0.75
+					tag_cooldown = 0.85
 					AudioManager.play_juke_whoosh()
-					GameManager.show_combat_banner("🏃 SLID UNDER TAG!", Color(0.3, 1.0, 0.5))
+					GameManager.add_runner_points(1, "AGILITY DODGE: Slid under tag! (+1 Runner)")
+					GameManager.show_combat_banner("🏃 SLID UNDER TAG! (+1 AGILITY)", Color(0.3, 1.0, 0.5))
 					continue
 				var runner_name: String = c.player_name if "player_name" in c else c.bot_name if "bot_name" in c else "Runner"
 				NetworkManager.trigger_tag(c.peer_id if "peer_id" in c else 0, peer_id, runner_name, player_name)
@@ -593,9 +615,10 @@ func _attempt_tag() -> void:
 	if not tagged and target_runner and is_instance_valid(target_runner):
 		var target_sliding: bool = target_runner.is_sliding if "is_sliding" in target_runner else false
 		if target_sliding:
-			tag_cooldown = 0.75
+			tag_cooldown = 0.85
 			AudioManager.play_juke_whoosh()
-			GameManager.show_combat_banner("🏃 SLID UNDER TAG!", Color(0.3, 1.0, 0.5))
+			GameManager.add_runner_points(1, "AGILITY DODGE: Slid under tag! (+1 Runner)")
+			GameManager.show_combat_banner("🏃 SLID UNDER TAG! (+1 AGILITY)", Color(0.3, 1.0, 0.5))
 		elif global_position.distance_to(target_runner.global_position) <= 1.35:
 			var runner_name: String = target_runner.player_name if "player_name" in target_runner else target_runner.bot_name if "bot_name" in target_runner else "Runner"
 			NetworkManager.trigger_tag(target_runner.peer_id if "peer_id" in target_runner else 0, peer_id, runner_name, player_name)
